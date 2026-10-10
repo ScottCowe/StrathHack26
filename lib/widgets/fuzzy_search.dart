@@ -1,12 +1,15 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:fuzzy_search_engine/fuzzy_search_engine.dart';
 
 class FuzzySearch extends StatefulWidget {
-  const FuzzySearch({required this.values, super.key});
+  const FuzzySearch({
+    required this.values,
+    required this.onSelected,
+    super.key,
+  });
 
   final List<String> values;
+  final ValueChanged<String> onSelected;
 
   @override
   State<StatefulWidget> createState() => FuzzySearchState();
@@ -28,10 +31,6 @@ class FuzzySearchState extends State<FuzzySearch> {
     });
   }
 
-  void doNothing(String s) {
-    log(s);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -39,7 +38,7 @@ class FuzzySearchState extends State<FuzzySearch> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           SearchInput(onChange: doSearch),
-          SearchResult(results: results, selectResult: doNothing),
+          SearchResult(results: results, selectResult: widget.onSelected),
         ],
       ),
     );

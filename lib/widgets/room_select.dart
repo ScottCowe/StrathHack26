@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:strathclean/services/sql_client.dart';
+import 'package:strathclean/widgets/fuzzy_search.dart';
 
 class RoomSelect extends StatefulWidget {
   const RoomSelect({
@@ -62,8 +63,10 @@ class _RoomSelectState extends State<RoomSelect> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        DropdownButtonFormField<String>(
-          key: ValueKey(_rooms.join(',')),
+        DropdownButtonFormField<int>(
+          key: ValueKey(
+            '${_rooms.map((room) => room.id).join(',')}:$selected',
+          ),
           initialValue: selected,
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
@@ -76,6 +79,20 @@ class _RoomSelectState extends State<RoomSelect> {
           ],
           onChanged: _rooms.isEmpty ? null : widget.onChanged,
         ),
+        if (_rooms.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          FuzzySearch(
+            values: [for (final room in _rooms) room.name],
+            onSelected: (name) {
+              for (final room in _rooms) {
+                if (room.name == name) {
+                  widget.onChanged(room.id);
+                  return;
+                }
+              }
+            },
+          ),
+        ],
         if (_error != null)
           Padding(
             padding: const EdgeInsets.only(top: 8),
