@@ -27,7 +27,7 @@ class AppDatabase extends _$AppDatabase{
         password: dotenv.get('DB_PASSWORD'),
       ),
       settings: const pg.ConnectionSettings(
-        sslMode: pg.SslMode.require,
+        sslMode: pg.SslMode.disable,
       ),
     );
   }

@@ -10,10 +10,9 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
 
+  final authRepository = AuthRepository(AuthService());
+  runApp(StrathCleanApp(authRepository: authRepository));
+
   final database = AppDatabase();
   await database.customSelect('SELECT 1').get();
-
-  final authRepository = AuthRepository(AuthService());
-
-  runApp(StrathCleanApp(authRepository: authRepository));
 }
