@@ -77,7 +77,7 @@ class _LoginFormState extends State<LoginForm> {
           context,
           '/home',
           (route) => false,
-          arguments: _usernameController.text.trim(),
+          arguments: user,
         );
       });
       return;
