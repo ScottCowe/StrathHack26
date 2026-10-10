@@ -724,9 +724,6 @@ class $CleansTable extends Cleans with TableInfo<$CleansTable, Clean> {
     false,
     type: DriftSqlType.bool,
     requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("audited" IN (0, 1))',
-    ),
   );
   static const VerificationMeta _auditTimeMeta = const VerificationMeta(
     'auditTime',
