@@ -13,20 +13,10 @@ class HomeView extends StatelessWidget {
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Image.asset(
-              'assets/images/strathlogo.png',
-              width: 200,
-              height: 200,
-            ),
-            ElevatedButton(
-              style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.all(Colors.blue),
-                foregroundColor: WidgetStateProperty.all(Colors.white),
-              ),
-              onPressed: () => Navigator.pushNamed(context, '/login'),
-              child: const Text('Login'),
+          children: [
+            DefaultTextStyle.merge(
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              child: Text('Greeting'),
             ),
           ],
         ),

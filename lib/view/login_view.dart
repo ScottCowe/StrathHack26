@@ -15,7 +15,19 @@ class LoginView extends StatelessWidget {
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
       ),
-      body: LoginForm(viewModel: viewModel),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Image.asset(
+              'assets/images/strathlogo.png',
+              width: 200,
+              height: 200,
+            ),
+      LoginForm(viewModel: viewModel),
+          ],
+        ),
+      ),
     );
   }
 }

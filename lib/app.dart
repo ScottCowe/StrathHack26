@@ -15,10 +15,10 @@ class StrathCleanApp extends StatelessWidget {
     return MaterialApp(
       initialRoute: '/',
       routes: {
-        '/': (context) => const HomeView(),
         '/login': (context) => LoginView(
               viewModel: LoginViewModel(authRepository),
             ),
+        '/home': (context) => const HomeView(),
       },
     );
   }
