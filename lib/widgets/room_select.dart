@@ -63,10 +63,8 @@ class _RoomSelectState extends State<RoomSelect> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        DropdownButtonFormField<int>(
-          key: ValueKey(
-            '${_rooms.map((room) => room.id).join(',')}:$selected',
-          ),
+        DropdownButtonFormField<String>(
+          key: ValueKey('${_rooms.join(',')}:$selected'),
           initialValue: selected,
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
@@ -82,15 +80,8 @@ class _RoomSelectState extends State<RoomSelect> {
         if (_rooms.isNotEmpty) ...[
           const SizedBox(height: 12),
           FuzzySearch(
-            values: [for (final room in _rooms) room.name],
-            onSelected: (name) {
-              for (final room in _rooms) {
-                if (room.name == name) {
-                  widget.onChanged(room.id);
-                  return;
-                }
-              }
-            },
+            values: _rooms,
+            onSelected: widget.onChanged,
           ),
         ],
         if (_error != null)
