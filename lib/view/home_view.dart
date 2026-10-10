@@ -47,13 +47,27 @@ class HomeView extends StatelessWidget {
           if (user.role == Role.supervisor)
             Expanded(
               child: Center(
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pushNamed(
-                    context,
-                    '/audit',
-                    arguments: user,
-                  ),
-                  child: const Text('Audit'),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () => Navigator.pushNamed(
+                        context,
+                        '/audit',
+                        arguments: user,
+                      ),
+                      child: const Text('Audit'),
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pushNamed(
+                        context,
+                        '/add-room',
+                        arguments: user,
+                      ),
+                      child: const Text('Add new room'),
+                    ),
+                  ],
                 ),
               ),
             ),
