@@ -63,27 +63,14 @@ class _RoomSelectState extends State<RoomSelect> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        DropdownButtonFormField<String>(
-          key: ValueKey('${_rooms.join(',')}:$selected'),
-          initialValue: selected,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            labelText: 'Room',
-          ),
-          hint: Text(hint),
-          items: [
-            for (final name in _rooms)
-              DropdownMenuItem(value: name, child: Text(name)),
-          ],
-          onChanged: _rooms.isEmpty ? null : widget.onChanged,
+        FuzzySearch(
+          values: _rooms,
+          value: selected,
+          label: 'Room',
+          hint: hint,
+          enabled: _loaded && _rooms.isNotEmpty,
+          onSelected: widget.onChanged,
         ),
-        if (_rooms.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          FuzzySearch(
-            values: _rooms,
-            onSelected: widget.onChanged,
-          ),
-        ],
         if (_error != null)
           Padding(
             padding: const EdgeInsets.only(top: 8),
