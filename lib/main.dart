@@ -1,37 +1,96 @@
 import 'package:flutter/material.dart';
 
+// function to trigger build when the app is run
 void main() {
-  runApp(const MyApp());
+  runApp(MaterialApp(
+    initialRoute: '/',
+    routes: {
+      '/': (context) => const HomeRoute(),
+      '/home': (context) => const SecondRoute(),
+      '/login': (context) => const LoginRoute(),
+    },
+  ));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class HomeRoute extends StatelessWidget {
+  const HomeRoute({Key? key}) : super(key: key);
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Strath Clean'),
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+      ), // AppBar
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            ElevatedButton(
+              style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.all(Colors.blue),
+                  foregroundColor: WidgetStateProperty.all(Colors.white)),
+              child: const Text('Click Me!'),
+              onPressed: () {
+                Navigator.pushNamed(context, '/second');
+              },
+            ), // ElevatedButton
+            ElevatedButton(
+              style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.all(Colors.blue),
+                  foregroundColor: WidgetStateProperty.all(Colors.white)),
+              child: const Text('Login'),
+              onPressed: () {
+                Navigator.pushNamed(context, '/login');
+              },
+            ), // ElevatedButton
+          ], // <Widget>[]
+        ), // Column
+      ), // Center
+    ); // Scaffold
+  }
+}
+
+class SecondRoute extends StatelessWidget {
+  const SecondRoute({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Click Me Page"),
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+      ), // AppBar
+      body: Center(
+        child: ElevatedButton(
+          style: ButtonStyle(
+              backgroundColor: WidgetStateProperty.all(Colors.blue),
+              foregroundColor: WidgetStateProperty.all(Colors.white)),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: const Text('Back!'),
+        ), // ElevatedButton
+      ), // Center
+    ); // Scaffold
+  }
+}
+
+class LoginRoute extends StatelessWidget {
+  const LoginRoute({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Login"),
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+      ), // AppBar
+    ); // Scaffold
   }
 }
 
