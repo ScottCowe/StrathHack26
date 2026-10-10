@@ -8,15 +8,15 @@ class RoomSelect extends StatefulWidget {
     required this.onChanged,
   });
 
-  final int? value;
-  final ValueChanged<int?> onChanged;
+  final String? value;
+  final ValueChanged<String?> onChanged;
 
   @override
   State<RoomSelect> createState() => _RoomSelectState();
 }
 
 class _RoomSelectState extends State<RoomSelect> {
-  List<({int id, String name})> _rooms = [];
+  List<String> _rooms = [];
   String? _error;
   var _loaded = false;
 
@@ -29,16 +29,13 @@ class _RoomSelectState extends State<RoomSelect> {
   Future<void> _load() async {
     try {
       final rows = await SqlClient().query(
-        'select id, name from rooms order by name',
+        'select name from rooms order by name',
       );
       if (!mounted) {
         return;
       }
       setState(() {
-        _rooms = [
-          for (final row in rows)
-            (id: (row['id'] as num).toInt(), name: row['name'] as String),
-        ];
+        _rooms = [for (final row in rows) row['name'] as String];
         _error = null;
         _loaded = true;
       });
@@ -55,9 +52,7 @@ class _RoomSelectState extends State<RoomSelect> {
 
   @override
   Widget build(BuildContext context) {
-    final selected = _rooms.any((room) => room.id == widget.value)
-        ? widget.value
-        : null;
+    final selected = _rooms.contains(widget.value) ? widget.value : null;
     final hint = !_loaded
         ? 'Loading rooms'
         : _rooms.isEmpty
@@ -67,8 +62,8 @@ class _RoomSelectState extends State<RoomSelect> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        DropdownButtonFormField<int>(
-          key: ValueKey(_rooms.map((room) => room.id).join(',')),
+        DropdownButtonFormField<String>(
+          key: ValueKey(_rooms.join(',')),
           initialValue: selected,
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
@@ -76,8 +71,8 @@ class _RoomSelectState extends State<RoomSelect> {
           ),
           hint: Text(hint),
           items: [
-            for (final room in _rooms)
-              DropdownMenuItem(value: room.id, child: Text(room.name)),
+            for (final name in _rooms)
+              DropdownMenuItem(value: name, child: Text(name)),
           ],
           onChanged: _rooms.isEmpty ? null : widget.onChanged,
         ),

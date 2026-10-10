@@ -316,19 +316,6 @@ class $RoomsTable extends Rooms with TableInfo<$RoomsTable, Room> {
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $RoomsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    hasAutoIncrement: true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'PRIMARY KEY AUTOINCREMENT',
-    ),
-  );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
@@ -368,7 +355,7 @@ class $RoomsTable extends Rooms with TableInfo<$RoomsTable, Room> {
     requiredDuringInsert: false,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, name, lastCleaned, notes, kml];
+  List<GeneratedColumn> get $columns => [name, lastCleaned, notes, kml];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -381,9 +368,6 @@ class $RoomsTable extends Rooms with TableInfo<$RoomsTable, Room> {
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
     if (data.containsKey('name')) {
       context.handle(
         _nameMeta,
@@ -417,15 +401,11 @@ class $RoomsTable extends Rooms with TableInfo<$RoomsTable, Room> {
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {id};
+  Set<GeneratedColumn> get $primaryKey => {name};
   @override
   Room map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return Room(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}id'],
-      )!,
       name: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}name'],
@@ -452,22 +432,14 @@ class $RoomsTable extends Rooms with TableInfo<$RoomsTable, Room> {
 }
 
 class Room extends DataClass implements Insertable<Room> {
-  final int id;
   final String name;
   final DateTime? lastCleaned;
   final String? notes;
   final String? kml;
-  const Room({
-    required this.id,
-    required this.name,
-    this.lastCleaned,
-    this.notes,
-    this.kml,
-  });
+  const Room({required this.name, this.lastCleaned, this.notes, this.kml});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
     if (!nullToAbsent || lastCleaned != null) {
       map['last_cleaned'] = Variable<DateTime>(lastCleaned);
@@ -483,7 +455,6 @@ class Room extends DataClass implements Insertable<Room> {
 
   RoomsCompanion toCompanion(bool nullToAbsent) {
     return RoomsCompanion(
-      id: Value(id),
       name: Value(name),
       lastCleaned: lastCleaned == null && nullToAbsent
           ? const Value.absent()
@@ -501,7 +472,6 @@ class Room extends DataClass implements Insertable<Room> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Room(
-      id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       lastCleaned: serializer.fromJson<DateTime?>(json['lastCleaned']),
       notes: serializer.fromJson<String?>(json['notes']),
@@ -512,7 +482,6 @@ class Room extends DataClass implements Insertable<Room> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
       'lastCleaned': serializer.toJson<DateTime?>(lastCleaned),
       'notes': serializer.toJson<String?>(notes),
@@ -521,13 +490,11 @@ class Room extends DataClass implements Insertable<Room> {
   }
 
   Room copyWith({
-    int? id,
     String? name,
     Value<DateTime?> lastCleaned = const Value.absent(),
     Value<String?> notes = const Value.absent(),
     Value<String?> kml = const Value.absent(),
   }) => Room(
-    id: id ?? this.id,
     name: name ?? this.name,
     lastCleaned: lastCleaned.present ? lastCleaned.value : this.lastCleaned,
     notes: notes.present ? notes.value : this.notes,
@@ -535,7 +502,6 @@ class Room extends DataClass implements Insertable<Room> {
   );
   Room copyWithCompanion(RoomsCompanion data) {
     return Room(
-      id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       lastCleaned: data.lastCleaned.present
           ? data.lastCleaned.value
@@ -548,7 +514,6 @@ class Room extends DataClass implements Insertable<Room> {
   @override
   String toString() {
     return (StringBuffer('Room(')
-          ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('lastCleaned: $lastCleaned, ')
           ..write('notes: $notes, ')
@@ -558,12 +523,11 @@ class Room extends DataClass implements Insertable<Room> {
   }
 
   @override
-  int get hashCode => Object.hash(id, name, lastCleaned, notes, kml);
+  int get hashCode => Object.hash(name, lastCleaned, notes, kml);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Room &&
-          other.id == this.id &&
           other.name == this.name &&
           other.lastCleaned == this.lastCleaned &&
           other.notes == this.notes &&
@@ -571,63 +535,60 @@ class Room extends DataClass implements Insertable<Room> {
 }
 
 class RoomsCompanion extends UpdateCompanion<Room> {
-  final Value<int> id;
   final Value<String> name;
   final Value<DateTime?> lastCleaned;
   final Value<String?> notes;
   final Value<String?> kml;
+  final Value<int> rowid;
   const RoomsCompanion({
-    this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.lastCleaned = const Value.absent(),
     this.notes = const Value.absent(),
     this.kml = const Value.absent(),
+    this.rowid = const Value.absent(),
   });
   RoomsCompanion.insert({
-    this.id = const Value.absent(),
     required String name,
     this.lastCleaned = const Value.absent(),
     this.notes = const Value.absent(),
     this.kml = const Value.absent(),
+    this.rowid = const Value.absent(),
   }) : name = Value(name);
   static Insertable<Room> custom({
-    Expression<int>? id,
     Expression<String>? name,
     Expression<DateTime>? lastCleaned,
     Expression<String>? notes,
     Expression<String>? kml,
+    Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
-      if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (lastCleaned != null) 'last_cleaned': lastCleaned,
       if (notes != null) 'notes': notes,
       if (kml != null) 'kml': kml,
+      if (rowid != null) 'rowid': rowid,
     });
   }
 
   RoomsCompanion copyWith({
-    Value<int>? id,
     Value<String>? name,
     Value<DateTime?>? lastCleaned,
     Value<String?>? notes,
     Value<String?>? kml,
+    Value<int>? rowid,
   }) {
     return RoomsCompanion(
-      id: id ?? this.id,
       name: name ?? this.name,
       lastCleaned: lastCleaned ?? this.lastCleaned,
       notes: notes ?? this.notes,
       kml: kml ?? this.kml,
+      rowid: rowid ?? this.rowid,
     );
   }
 
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
@@ -640,17 +601,20 @@ class RoomsCompanion extends UpdateCompanion<Room> {
     if (kml.present) {
       map['kml'] = Variable<String>(kml.value);
     }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
     return map;
   }
 
   @override
   String toString() {
     return (StringBuffer('RoomsCompanion(')
-          ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('lastCleaned: $lastCleaned, ')
           ..write('notes: $notes, ')
-          ..write('kml: $kml')
+          ..write('kml: $kml, ')
+          ..write('rowid: $rowid')
           ..write(')'))
         .toString();
   }
@@ -711,7 +675,7 @@ class $CleansTable extends Cleans with TableInfo<$CleansTable, Clean> {
     type: DriftSqlType.int,
     requiredDuringInsert: true,
     defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES rooms (id)',
+      'REFERENCES rooms (name)',
     ),
   );
   static const VerificationMeta _auditedMeta = const VerificationMeta(
@@ -1734,43 +1698,19 @@ typedef $$UsersTableProcessedTableManager =
       PrefetchHooks Function()
     >;
 typedef $$RoomsTableCreateCompanionBuilder = RoomsCompanion Function({
-  Value<int> id,
   required String name,
   Value<DateTime?> lastCleaned,
   Value<String?> notes,
   Value<String?> kml,
+  Value<int> rowid,
 });
 typedef $$RoomsTableUpdateCompanionBuilder = RoomsCompanion Function({
-  Value<int> id,
   Value<String> name,
   Value<DateTime?> lastCleaned,
   Value<String?> notes,
   Value<String?> kml,
+  Value<int> rowid,
 });
-
-final class $$RoomsTableReferences
-    extends BaseReferences<_$AppDatabase, $RoomsTable, Room> {
-  $$RoomsTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static MultiTypedResultKey<$CleansTable, List<Clean>> _cleansRefsTable(
-    _$AppDatabase db,
-  ) => MultiTypedResultKey.fromTable(
-    db.cleans,
-    aliasName: 'rooms__id__cleans__room',
-  );
-
-  $$CleansTableProcessedTableManager get cleansRefs {
-    final manager = $$CleansTableTableManager(
-      $_db,
-      $_db.cleans,
-    ).filter((f) => f.room.id.sqlEquals($_itemColumn<int>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(_cleansRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-}
 
 class $$RoomsTableFilterComposer extends Composer<_$AppDatabase, $RoomsTable> {
   $$RoomsTableFilterComposer({
@@ -1780,11 +1720,6 @@ class $$RoomsTableFilterComposer extends Composer<_$AppDatabase, $RoomsTable> {
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<String> get name => $composableBuilder(
     column: $table.name,
     builder: (column) => ColumnFilters(column),
@@ -1804,31 +1739,6 @@ class $$RoomsTableFilterComposer extends Composer<_$AppDatabase, $RoomsTable> {
     column: $table.kml,
     builder: (column) => ColumnFilters(column),
   );
-
-  Expression<bool> cleansRefs(
-    Expression<bool> Function($$CleansTableFilterComposer f) f,
-  ) {
-    final $$CleansTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.cleans,
-      getReferencedColumn: (t) => t.room,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$CleansTableFilterComposer(
-            $db: $db,
-            $table: $db.cleans,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$RoomsTableOrderingComposer
@@ -1840,11 +1750,6 @@ class $$RoomsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get name => $composableBuilder(
     column: $table.name,
     builder: (column) => ColumnOrderings(column),
@@ -1875,9 +1780,6 @@ class $$RoomsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
 
@@ -1891,31 +1793,6 @@ class $$RoomsTableAnnotationComposer
 
   GeneratedColumn<String> get kml =>
       $composableBuilder(column: $table.kml, builder: (column) => column);
-
-  Expression<T> cleansRefs<T extends Object>(
-    Expression<T> Function($$CleansTableAnnotationComposer a) f,
-  ) {
-    final $$CleansTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.cleans,
-      getReferencedColumn: (t) => t.room,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$CleansTableAnnotationComposer(
-            $db: $db,
-            $table: $db.cleans,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$RoomsTableTableManager
@@ -1929,9 +1806,9 @@ class $$RoomsTableTableManager
           $$RoomsTableAnnotationComposer,
           $$RoomsTableCreateCompanionBuilder,
           $$RoomsTableUpdateCompanionBuilder,
-          (Room, $$RoomsTableReferences),
+          (Room, BaseReferences<_$AppDatabase, $RoomsTable, Room>),
           Room,
-          PrefetchHooks Function({bool cleansRefs})
+          PrefetchHooks Function()
         > {
   $$RoomsTableTableManager(_$AppDatabase db, $RoomsTable table)
     : super(
@@ -1946,63 +1823,45 @@ class $$RoomsTableTableManager
               $$RoomsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<DateTime?> lastCleaned = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<String?> kml = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => RoomsCompanion(
-                id: id,
                 name: name,
                 lastCleaned: lastCleaned,
                 notes: notes,
                 kml: kml,
+                rowid: rowid,
               ),
           createCompanionCallback:
               ({
-                Value<int> id = const Value.absent(),
                 required String name,
                 Value<DateTime?> lastCleaned = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<String?> kml = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
               }) => RoomsCompanion.insert(
-                id: id,
                 name: name,
                 lastCleaned: lastCleaned,
                 notes: notes,
                 kml: kml,
+                rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
                   e.readTable<$RoomsTable, Room>(table),
-                  $$RoomsTableReferences(db, table, e),
+                  BaseReferences<_$AppDatabase, $RoomsTable, Room>(
+                    db,
+                    table,
+                    e,
+                  ),
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({cleansRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (cleansRefs) db.cleans],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (cleansRefs)
-                    await $_getPrefetchedData<Room, $RoomsTable, Clean>(
-                      currentTable: table,
-                      referencedTable: $$RoomsTableReferences._cleansRefsTable(
-                        db,
-                      ),
-                      managerFromTypedResult: (p0) =>
-                          $$RoomsTableReferences(db, table, p0).cleansRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.room == item.id),
-                      typedResults: items,
-                    ),
-                ];
-              },
-            );
-          },
+          prefetchHooksCallback: null,
         ),
       );
 }
@@ -2017,9 +1876,9 @@ typedef $$RoomsTableProcessedTableManager =
       $$RoomsTableAnnotationComposer,
       $$RoomsTableCreateCompanionBuilder,
       $$RoomsTableUpdateCompanionBuilder,
-      (Room, $$RoomsTableReferences),
+      (Room, BaseReferences<_$AppDatabase, $RoomsTable, Room>),
       Room,
-      PrefetchHooks Function({bool cleansRefs})
+      PrefetchHooks Function()
     >;
 typedef $$CleansTableCreateCompanionBuilder = CleansCompanion Function({
   Value<int> id,
@@ -2072,23 +1931,6 @@ final class $$CleansTableReferences
       $_db.users,
     ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_auditedByTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static $RoomsTable _roomTable(_$AppDatabase db) =>
-      db.rooms.createAlias('cleans__room__rooms__id');
-
-  $$RoomsTableProcessedTableManager get room {
-    final $_column = $_itemColumn<int>('room')!;
-
-    final manager = $$RoomsTableTableManager(
-      $_db,
-      $_db.rooms,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_roomTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -2181,29 +2023,6 @@ class $$CleansTableFilterComposer
           }) => $$UsersTableFilterComposer(
             $db: $db,
             $table: $db.users,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$RoomsTableFilterComposer get room {
-    final $$RoomsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.room,
-      referencedTable: $db.rooms,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$RoomsTableFilterComposer(
-            $db: $db,
-            $table: $db.rooms,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -2313,29 +2132,6 @@ class $$CleansTableOrderingComposer
     );
     return composer;
   }
-
-  $$RoomsTableOrderingComposer get room {
-    final $$RoomsTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.room,
-      referencedTable: $db.rooms,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$RoomsTableOrderingComposer(
-            $db: $db,
-            $table: $db.rooms,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
 }
 
 class $$CleansTableAnnotationComposer
@@ -2405,29 +2201,6 @@ class $$CleansTableAnnotationComposer
     return composer;
   }
 
-  $$RoomsTableAnnotationComposer get room {
-    final $$RoomsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.room,
-      referencedTable: $db.rooms,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$RoomsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.rooms,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
   Expression<T> issuesRefs<T extends Object>(
     Expression<T> Function($$IssuesTableAnnotationComposer a) f,
   ) {
@@ -2470,7 +2243,6 @@ class $$CleansTableTableManager
           PrefetchHooks Function({
             bool cleanedBy,
             bool auditedBy,
-            bool room,
             bool issuesRefs,
           })
         > {
@@ -2530,12 +2302,7 @@ class $$CleansTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({
-                cleanedBy = false,
-                auditedBy = false,
-                room = false,
-                issuesRefs = false,
-              }) {
+              ({cleanedBy = false, auditedBy = false, issuesRefs = false}) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [if (issuesRefs) db.issues],
@@ -2577,18 +2344,6 @@ class $$CleansTableTableManager
                                 .id,
                           ) as T;
                         }
-                        if (room) {
-                          state = state.withJoin(
-                            currentTable: table,
-                            currentColumn: table.room,
-                            referencedTable: $$CleansTableReferences._roomTable(
-                              db,
-                            ),
-                            referencedColumn: $$CleansTableReferences
-                                ._roomTable(db)
-                                .id,
-                          ) as T;
-                        }
 
                         return state;
                       },
@@ -2627,12 +2382,7 @@ typedef $$CleansTableProcessedTableManager =
       $$CleansTableUpdateCompanionBuilder,
       (Clean, $$CleansTableReferences),
       Clean,
-      PrefetchHooks Function({
-        bool cleanedBy,
-        bool auditedBy,
-        bool room,
-        bool issuesRefs,
-      })
+      PrefetchHooks Function({bool cleanedBy, bool auditedBy, bool issuesRefs})
     >;
 typedef $$IssuesTableCreateCompanionBuilder = IssuesCompanion Function({
   Value<int> id,

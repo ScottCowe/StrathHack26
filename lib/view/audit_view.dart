@@ -11,7 +11,7 @@ class AuditView extends StatefulWidget {
 class _AuditViewState extends State<AuditView> {
   static const _typeOptions = ['cleaning', 'external'];
 
-  int? _roomId;
+  String? _roomName;
   bool? _yesNo;
   String? _type;
   final _descriptionController = TextEditingController();
@@ -48,8 +48,8 @@ class _AuditViewState extends State<AuditView> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             RoomSelect(
-              value: _roomId,
-              onChanged: (id) => setState(() => _roomId = id),
+              value: _roomName,
+              onChanged: (name) => setState(() => _roomName = name),
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<bool>(
