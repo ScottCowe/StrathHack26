@@ -9,11 +9,43 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(Map<String, String> env) : super(_open(env));
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration =>
-      MigrationStrategy(onCreate: (m) async => m.createAll());
+      MigrationStrategy(onCreate: (m) async => m.createAll(),
+      onUpgrade: ((m, from, to) async {
+        if (from < 2) {
+          await m.issueCustomQuery(
+          'alter table cleans drop constraint cleans_room_fkey',
+          );
+          await m.issueCustomQuery(
+            'alter table cleans add column room_name text',
+          );
+          await m.issueCustomQuery(
+            'update cleans as c set room_name = r.name from rooms as r where c.room = r.id',
+          );
+          await m.issueCustomQuery(
+            'alter table cleans alter column room_name set not null',
+          );
+          await m.issueCustomQuery('alter table cleans drop column room');
+          await m.issueCustomQuery(
+            'alter table cleans rename column room_name to room',
+          );
+          await m.issueCustomQuery(
+            'alter table rooms drop constraint rooms_pkey',
+          );
+          await m.issueCustomQuery('alter table rooms drop column id');
+          await m.issueCustomQuery(
+            'alter table rooms add primary key (name)',
+          );
+          await m.issueCustomQuery(
+            'alter table cleans add constraint cleans_room_fkey foreign key (room) references rooms (name)',
+          );
+        }
+      }
+    )
+  );
 
   static QueryExecutor _open(Map<String, String> env) {
     return PgDatabase(
@@ -47,18 +79,20 @@ class Users extends Table {
 }
 
 class Rooms extends Table {
-  IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text()();
   DateTimeColumn get lastCleaned => dateTime().nullable()();
   TextColumn get notes => text().nullable()();
   TextColumn get kml => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {name};
 }
 
 class Cleans extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get cleanedBy => integer().references(Users, #id)();
   IntColumn get auditedBy => integer().references(Users, #id).nullable()();
-  IntColumn get room => integer().references(Rooms, #id)();
+  IntColumn get room => integer().references(Rooms, #name)();
   BoolColumn get audited => boolean()();
   DateTimeColumn get auditTime => dateTime().nullable()();
   DateTimeColumn get cleanTime => dateTime()();
