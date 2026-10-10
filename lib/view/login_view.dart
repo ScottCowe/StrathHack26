@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:strathclean/view/cleaner_view.dart';
 
 import 'package:strathclean/viewmodel/login_view_model.dart';
 
@@ -46,21 +50,30 @@ class _LoginFormState extends State<LoginForm> {
       return;
     }
 
-    final success = await widget.viewModel.submitLogin(
+    final user = await widget.viewModel.submitLogin(
       _usernameController.text,
       _passwordController.text,
     );
 
-    if (!mounted) {
-      return;
-    }
+    if(user == null) {
+      if (!mounted) {
+        return;
+      }
 
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(success ? 'Login successful' : 'Login failed'),
-      ),
-    );
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Login failed'),
+        ),
+      );
+    } else {
+      SharedPreferences sp = await SharedPreferences.getInstance();
+      sp.setString("user", jsonEncode(user.toJson()));
+
+      Navigator.push(context,
+                     MaterialPageRoute(
+                      builder: (context) => const CleanerView()));
+    }
   }
 
   @override
