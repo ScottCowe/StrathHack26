@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:strathclean/repositories/auth_repository.dart';
+import 'package:strathclean/view/audit_view.dart';
 import 'package:strathclean/view/home_view.dart';
 import 'package:strathclean/view/login_view.dart';
 import 'package:strathclean/viewmodel/login_view_model.dart';
@@ -13,12 +14,17 @@ class StrathCleanApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      initialRoute: '/',
+      initialRoute: '/login',
       routes: {
-        '/': (context) => const HomeView(),
         '/login': (context) => LoginView(
               viewModel: LoginViewModel(authRepository),
             ),
+        '/home': (context) {
+          final username =
+              ModalRoute.of(context)?.settings.arguments as String? ?? '';
+          return HomeView(username: username);
+        },
+        '/audit': (context) => const AuditView(),
       },
     );
   }
