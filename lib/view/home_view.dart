@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:strathclean/models/roles.dart';
+import 'package:strathclean/models/user.dart';
 
 class HomeView extends StatelessWidget {
-  const HomeView({super.key, required this.username});
+  const HomeView({super.key, required this.user});
 
-  final String username;
+  final User user;
 
   @override
   Widget build(BuildContext context) {
@@ -35,21 +37,26 @@ class HomeView extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
-              'Hello, $username',
+              'Hello, ${user.username}',
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
           ),
-          Expanded(
-            child: Center(
-              child: ElevatedButton(
-                onPressed: () => Navigator.pushNamed(context, '/audit'),
-                child: const Text('Audit'),
+          if (user.role == Role.supervisor)
+            Expanded(
+              child: Center(
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pushNamed(
+                    context,
+                    '/audit',
+                    arguments: user,
+                  ),
+                  child: const Text('Audit'),
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
