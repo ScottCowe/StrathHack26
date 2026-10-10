@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:strathclean/models/roles.dart';
 import 'package:strathclean/models/user.dart';
 import 'package:strathclean/repositories/auth_repository.dart';
+import 'package:strathclean/services/clean_service.dart';
 import 'package:strathclean/services/room_service.dart';
 import 'package:strathclean/view/add_room_view.dart';
 import 'package:strathclean/view/audit_view.dart';
@@ -15,10 +16,12 @@ class StrathCleanApp extends StatelessWidget {
     super.key,
     required this.authRepository,
     required this.roomService,
+    required this.cleanService,
   });
 
   final AuthRepository authRepository;
   final RoomService roomService;
+  final CleanService cleanService;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +47,7 @@ class StrathCleanApp extends StatelessWidget {
               body: Center(child: Text('Audit is for supervisors only')),
             );
           }
-          return const AuditView();
+          return AuditView(user: user, cleanService: cleanService);
         },
         '/log-clean': (context) {
           final user = ModalRoute.of(context)?.settings.arguments as User?;
@@ -53,7 +56,11 @@ class StrathCleanApp extends StatelessWidget {
               body: Center(child: Text('Logging cleans is for cleaners only')),
             );
           }
-          return const AuditView(title: 'Log cleans');
+          return AuditView(
+            title: 'Log cleans',
+            user: user,
+            cleanService: cleanService,
+          );
         },
         '/add-room': (context) {
           final user = ModalRoute.of(context)?.settings.arguments as User?;

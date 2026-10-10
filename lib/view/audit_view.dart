@@ -1,10 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:strathclean/models/user.dart';
+import 'package:strathclean/services/clean_service.dart';
 import 'package:strathclean/widgets/room_select.dart';
 
 class AuditView extends StatefulWidget {
-  const AuditView({super.key, this.title = 'Audit'});
+  const AuditView({
+    super.key,
+    this.title = 'Audit',
+    required this.user,
+    required this.cleanService,
+  });
 
   final String title;
+  final User user;
+  final CleanService cleanService;
 
   @override
   State<AuditView> createState() => _AuditViewState();
@@ -17,11 +26,43 @@ class _AuditViewState extends State<AuditView> {
   bool? _yesNo;
   String? _type;
   final _descriptionController = TextEditingController();
+  var _saving = false;
 
   @override
   void dispose() {
     _descriptionController.dispose();
     super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (_saving) return;
+    final room = _roomName;
+    if (room == null || room.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Select a room')),
+      );
+      return;
+    }
+    if (_yesNo != true) {
+      return;
+    }
+
+    setState(() => _saving = true);
+    try {
+      await widget.cleanService.logClean(
+        username: widget.user.username,
+        room: room,
+      );
+      if (!mounted) return;
+      Navigator.pop(context);
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not log clean: $error')),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   void _onYesNoChanged(bool? value) {
@@ -97,6 +138,11 @@ class _AuditViewState extends State<AuditView> {
                 maxLines: 4,
               ),
             ],
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: _saving ? null : _submit,
+              child: const Text('Submit'),
+            ),
           ],
         ),
       ),
