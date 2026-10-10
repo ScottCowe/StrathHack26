@@ -13,7 +13,7 @@ class StrathCleanApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      initialRoute: '/',
+      initialRoute: '/login',
       routes: {
         '/login': (context) => LoginView(
               viewModel: LoginViewModel(authRepository),
