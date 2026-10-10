@@ -1,8 +1,4 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:strathclean/view/cleaner_view.dart';
 
 import 'package:strathclean/viewmodel/login_view_model.dart';
 
@@ -68,12 +64,11 @@ class _LoginFormState extends State<LoginForm> {
       _passwordController.text,
     );
 
-    if(user == null) {
-      if (!mounted) {
-        return;
-      }
+    if (!mounted) {
+      return;
+    }
 
-    if (success) {
+    if (user != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!context.mounted) {
           return;
