@@ -15,7 +15,7 @@ class FuzzySearch extends StatefulWidget {
 class FuzzySearchState extends State<FuzzySearch> {
   List<String> results = [];
 
-  void doSearch(query) {
+  void doSearch(String query) {
     List<SearchableItem> items = [];
     widget.values.asMap().forEach((index, value) {
       items.add(SearchableItem(id: '$index', name: value));

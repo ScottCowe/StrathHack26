@@ -53,7 +53,7 @@ class _AuditViewState extends State<AuditView> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<bool>(
-              value: _yesNo,
+              initialValue: _yesNo,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 labelText: 'Yes / No',
@@ -68,7 +68,7 @@ class _AuditViewState extends State<AuditView> {
             if (showIssueFields) ...[
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: _typeOptions.contains(_type) ? _type : null,
+                initialValue: _typeOptions.contains(_type) ? _type : null,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   labelText: 'Type',

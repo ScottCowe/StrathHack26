@@ -16,30 +16,30 @@ class AppDatabase extends _$AppDatabase {
       MigrationStrategy(onCreate: (m) async => m.createAll(),
       onUpgrade: ((m, from, to) async {
         if (from < 2) {
-          await m.issueCustomQuery(
+          await customStatement(
           'alter table cleans drop constraint cleans_room_fkey',
           );
-          await m.issueCustomQuery(
+          await customStatement(
             'alter table cleans add column room_name text',
           );
-          await m.issueCustomQuery(
+          await customStatement(
             'update cleans as c set room_name = r.name from rooms as r where c.room = r.id',
           );
-          await m.issueCustomQuery(
+          await customStatement(
             'alter table cleans alter column room_name set not null',
           );
-          await m.issueCustomQuery('alter table cleans drop column room');
-          await m.issueCustomQuery(
+          await customStatement('alter table cleans drop column room');
+          await customStatement(
             'alter table cleans rename column room_name to room',
           );
-          await m.issueCustomQuery(
+          await customStatement(
             'alter table rooms drop constraint rooms_pkey',
           );
-          await m.issueCustomQuery('alter table rooms drop column id');
-          await m.issueCustomQuery(
+          await customStatement('alter table rooms drop column id');
+          await customStatement(
             'alter table rooms add primary key (name)',
           );
-          await m.issueCustomQuery(
+          await customStatement(
             'alter table cleans add constraint cleans_room_fkey foreign key (room) references rooms (name)',
           );
         }
