@@ -1152,6 +1152,18 @@ class $IssuesTable extends Issues with TableInfo<$IssuesTable, Issue> {
         type: DriftSqlType.string,
         requiredDuringInsert: true,
       ).withConverter<Priority>($IssuesTable.$converterpriority);
+  static const VerificationMeta _resolvedMeta = const VerificationMeta(
+    'resolved',
+  );
+  @override
+  late final GeneratedColumn<bool> resolved = GeneratedColumn<bool>(
+    'resolved',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1160,6 +1172,7 @@ class $IssuesTable extends Issues with TableInfo<$IssuesTable, Issue> {
     description,
     tag,
     priority,
+    resolved,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1199,6 +1212,12 @@ class $IssuesTable extends Issues with TableInfo<$IssuesTable, Issue> {
         ),
       );
     }
+    if (data.containsKey('resolved')) {
+      context.handle(
+        _resolvedMeta,
+        resolved.isAcceptableOrUnknown(data['resolved']!, _resolvedMeta),
+      );
+    }
     return context;
   }
 
@@ -1236,6 +1255,10 @@ class $IssuesTable extends Issues with TableInfo<$IssuesTable, Issue> {
           data['${effectivePrefix}priority'],
         )!,
       ),
+      resolved: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}resolved'],
+      )!,
     );
   }
 
@@ -1257,6 +1280,7 @@ class Issue extends DataClass implements Insertable<Issue> {
   final String? description;
   final TagName tag;
   final Priority priority;
+  final bool resolved;
   const Issue({
     required this.id,
     required this.cleanId,
@@ -1264,6 +1288,7 @@ class Issue extends DataClass implements Insertable<Issue> {
     this.description,
     required this.tag,
     required this.priority,
+    required this.resolved,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1284,6 +1309,7 @@ class Issue extends DataClass implements Insertable<Issue> {
         $IssuesTable.$converterpriority.toSql(priority),
       );
     }
+    map['resolved'] = Variable<bool>(resolved);
     return map;
   }
 
@@ -1299,6 +1325,7 @@ class Issue extends DataClass implements Insertable<Issue> {
           : Value(description),
       tag: Value(tag),
       priority: Value(priority),
+      resolved: Value(resolved),
     );
   }
 
@@ -1318,6 +1345,7 @@ class Issue extends DataClass implements Insertable<Issue> {
       priority: $IssuesTable.$converterpriority.fromJson(
         serializer.fromJson<String>(json['priority']),
       ),
+      resolved: serializer.fromJson<bool>(json['resolved']),
     );
   }
   @override
@@ -1332,6 +1360,7 @@ class Issue extends DataClass implements Insertable<Issue> {
       'priority': serializer.toJson<String>(
         $IssuesTable.$converterpriority.toJson(priority),
       ),
+      'resolved': serializer.toJson<bool>(resolved),
     };
   }
 
@@ -1342,6 +1371,7 @@ class Issue extends DataClass implements Insertable<Issue> {
     Value<String?> description = const Value.absent(),
     TagName? tag,
     Priority? priority,
+    bool? resolved,
   }) => Issue(
     id: id ?? this.id,
     cleanId: cleanId ?? this.cleanId,
@@ -1349,6 +1379,7 @@ class Issue extends DataClass implements Insertable<Issue> {
     description: description.present ? description.value : this.description,
     tag: tag ?? this.tag,
     priority: priority ?? this.priority,
+    resolved: resolved ?? this.resolved,
   );
   Issue copyWithCompanion(IssuesCompanion data) {
     return Issue(
@@ -1360,6 +1391,7 @@ class Issue extends DataClass implements Insertable<Issue> {
           : this.description,
       tag: data.tag.present ? data.tag.value : this.tag,
       priority: data.priority.present ? data.priority.value : this.priority,
+      resolved: data.resolved.present ? data.resolved.value : this.resolved,
     );
   }
 
@@ -1371,7 +1403,8 @@ class Issue extends DataClass implements Insertable<Issue> {
           ..write('image: $image, ')
           ..write('description: $description, ')
           ..write('tag: $tag, ')
-          ..write('priority: $priority')
+          ..write('priority: $priority, ')
+          ..write('resolved: $resolved')
           ..write(')'))
         .toString();
   }
@@ -1384,6 +1417,7 @@ class Issue extends DataClass implements Insertable<Issue> {
     description,
     tag,
     priority,
+    resolved,
   );
   @override
   bool operator ==(Object other) =>
@@ -1394,7 +1428,8 @@ class Issue extends DataClass implements Insertable<Issue> {
           $driftBlobEquality.equals(other.image, this.image) &&
           other.description == this.description &&
           other.tag == this.tag &&
-          other.priority == this.priority);
+          other.priority == this.priority &&
+          other.resolved == this.resolved);
 }
 
 class IssuesCompanion extends UpdateCompanion<Issue> {
@@ -1404,6 +1439,7 @@ class IssuesCompanion extends UpdateCompanion<Issue> {
   final Value<String?> description;
   final Value<TagName> tag;
   final Value<Priority> priority;
+  final Value<bool> resolved;
   const IssuesCompanion({
     this.id = const Value.absent(),
     this.cleanId = const Value.absent(),
@@ -1411,6 +1447,7 @@ class IssuesCompanion extends UpdateCompanion<Issue> {
     this.description = const Value.absent(),
     this.tag = const Value.absent(),
     this.priority = const Value.absent(),
+    this.resolved = const Value.absent(),
   });
   IssuesCompanion.insert({
     this.id = const Value.absent(),
@@ -1419,6 +1456,7 @@ class IssuesCompanion extends UpdateCompanion<Issue> {
     this.description = const Value.absent(),
     required TagName tag,
     required Priority priority,
+    this.resolved = const Value.absent(),
   }) : cleanId = Value(cleanId),
        tag = Value(tag),
        priority = Value(priority);
@@ -1429,6 +1467,7 @@ class IssuesCompanion extends UpdateCompanion<Issue> {
     Expression<String>? description,
     Expression<String>? tag,
     Expression<String>? priority,
+    Expression<bool>? resolved,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1437,6 +1476,7 @@ class IssuesCompanion extends UpdateCompanion<Issue> {
       if (description != null) 'description': description,
       if (tag != null) 'tag': tag,
       if (priority != null) 'priority': priority,
+      if (resolved != null) 'resolved': resolved,
     });
   }
 
@@ -1447,6 +1487,7 @@ class IssuesCompanion extends UpdateCompanion<Issue> {
     Value<String?>? description,
     Value<TagName>? tag,
     Value<Priority>? priority,
+    Value<bool>? resolved,
   }) {
     return IssuesCompanion(
       id: id ?? this.id,
@@ -1455,6 +1496,7 @@ class IssuesCompanion extends UpdateCompanion<Issue> {
       description: description ?? this.description,
       tag: tag ?? this.tag,
       priority: priority ?? this.priority,
+      resolved: resolved ?? this.resolved,
     );
   }
 
@@ -1483,6 +1525,9 @@ class IssuesCompanion extends UpdateCompanion<Issue> {
         $IssuesTable.$converterpriority.toSql(priority.value),
       );
     }
+    if (resolved.present) {
+      map['resolved'] = Variable<bool>(resolved.value);
+    }
     return map;
   }
 
@@ -1494,7 +1539,8 @@ class IssuesCompanion extends UpdateCompanion<Issue> {
           ..write('image: $image, ')
           ..write('description: $description, ')
           ..write('tag: $tag, ')
-          ..write('priority: $priority')
+          ..write('priority: $priority, ')
+          ..write('resolved: $resolved')
           ..write(')'))
         .toString();
   }
@@ -2391,6 +2437,7 @@ typedef $$IssuesTableCreateCompanionBuilder = IssuesCompanion Function({
   Value<String?> description,
   required TagName tag,
   required Priority priority,
+  Value<bool> resolved,
 });
 typedef $$IssuesTableUpdateCompanionBuilder = IssuesCompanion Function({
   Value<int> id,
@@ -2399,6 +2446,7 @@ typedef $$IssuesTableUpdateCompanionBuilder = IssuesCompanion Function({
   Value<String?> description,
   Value<TagName> tag,
   Value<Priority> priority,
+  Value<bool> resolved,
 });
 
 final class $$IssuesTableReferences
@@ -2459,6 +2507,11 @@ class $$IssuesTableFilterComposer
         builder: (column) => ColumnWithTypeConverterFilters(column),
       );
 
+  ColumnFilters<bool> get resolved => $composableBuilder(
+    column: $table.resolved,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$CleansTableFilterComposer get cleanId {
     final $$CleansTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -2517,6 +2570,11 @@ class $$IssuesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get resolved => $composableBuilder(
+    column: $table.resolved,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$CleansTableOrderingComposer get cleanId {
     final $$CleansTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -2566,6 +2624,9 @@ class $$IssuesTableAnnotationComposer
 
   GeneratedColumnWithTypeConverter<Priority, String> get priority =>
       $composableBuilder(column: $table.priority, builder: (column) => column);
+
+  GeneratedColumn<bool> get resolved =>
+      $composableBuilder(column: $table.resolved, builder: (column) => column);
 
   $$CleansTableAnnotationComposer get cleanId {
     final $$CleansTableAnnotationComposer composer = $composerBuilder(
@@ -2625,6 +2686,7 @@ class $$IssuesTableTableManager
                 Value<String?> description = const Value.absent(),
                 Value<TagName> tag = const Value.absent(),
                 Value<Priority> priority = const Value.absent(),
+                Value<bool> resolved = const Value.absent(),
               }) => IssuesCompanion(
                 id: id,
                 cleanId: cleanId,
@@ -2632,6 +2694,7 @@ class $$IssuesTableTableManager
                 description: description,
                 tag: tag,
                 priority: priority,
+                resolved: resolved,
               ),
           createCompanionCallback:
               ({
@@ -2641,6 +2704,7 @@ class $$IssuesTableTableManager
                 Value<String?> description = const Value.absent(),
                 required TagName tag,
                 required Priority priority,
+                Value<bool> resolved = const Value.absent(),
               }) => IssuesCompanion.insert(
                 id: id,
                 cleanId: cleanId,
@@ -2648,6 +2712,7 @@ class $$IssuesTableTableManager
                 description: description,
                 tag: tag,
                 priority: priority,
+                resolved: resolved,
               ),
           withReferenceMapper: (p0) => p0
               .map(

@@ -9,7 +9,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(Map<String, String> env) : super(_open(env));
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration =>
@@ -42,6 +42,9 @@ class AppDatabase extends _$AppDatabase {
           await customStatement(
             'alter table cleans add constraint cleans_room_fkey foreign key (room) references rooms (name)',
           );
+        }
+        if (from < 3) {
+          await m.addColumn(issues, issues.resolved);
         }
       }
     )
@@ -110,4 +113,5 @@ class Issues extends Table {
   TextColumn get tag => textEnum<TagName>()();
   //needs coords perhaps
   TextColumn get priority => textEnum<Priority>()();
+  BoolColumn get resolved => boolean().withDefault(const Constant(false))();
 }
