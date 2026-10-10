@@ -10,7 +10,7 @@ class AuthService {
 
   Future<User?> authenticate(String username, String password) async {
     final rows = await _sql.query(
-      'select password_hash, role from users where username = ?',
+      'select password_hash, role from users where username = \$1',
       [username],
     );
     if (rows.isEmpty) {
