@@ -46,6 +46,15 @@ class StrathCleanApp extends StatelessWidget {
           }
           return const AuditView();
         },
+        '/log-clean': (context) {
+          final user = ModalRoute.of(context)?.settings.arguments as User?;
+          if (user == null || user.role != Role.cleaner) {
+            return const Scaffold(
+              body: Center(child: Text('Logging cleans is for cleaners only')),
+            );
+          }
+          return const AuditView(title: 'Log cleans');
+        },
         '/add-room': (context) {
           final user = ModalRoute.of(context)?.settings.arguments as User?;
           if (user == null || user.role != Role.supervisor) {

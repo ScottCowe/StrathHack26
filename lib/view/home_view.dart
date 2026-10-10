@@ -44,6 +44,19 @@ class HomeView extends StatelessWidget {
               ),
             ),
           ),
+          if (user.role == Role.cleaner)
+            Expanded(
+              child: Center(
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pushNamed(
+                    context,
+                    '/log-clean',
+                    arguments: user,
+                  ),
+                  child: const Text('Log cleans'),
+                ),
+              ),
+            ),
           if (user.role == Role.supervisor)
             Expanded(
               child: Center(

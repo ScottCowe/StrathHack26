@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:strathclean/widgets/room_select.dart';
 
 class AuditView extends StatefulWidget {
-  const AuditView({super.key});
+  const AuditView({super.key, this.title = 'Audit'});
+
+  final String title;
 
   @override
   State<AuditView> createState() => _AuditViewState();
@@ -38,7 +40,7 @@ class _AuditViewState extends State<AuditView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Audit'),
+        title: Text(widget.title),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
       ),

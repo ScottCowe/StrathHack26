@@ -9,6 +9,7 @@ import 'package:strathclean/services/auth_service.dart';
 import 'package:strathclean/services/room_service.dart';
 import 'package:strathclean/services/sql_client.dart';
 import 'package:strathclean/view/add_room_view.dart';
+import 'package:strathclean/view/audit_view.dart';
 import 'package:strathclean/view/home_view.dart';
 
 void main() {
@@ -47,5 +48,25 @@ void main() {
     expect(find.text('Room name'), findsOneWidget);
     expect(find.text('Notes'), findsOneWidget);
     expect(find.text('Save'), findsOneWidget);
+  });
+
+  testWidgets('Cleaner can open the log cleans form', (tester) async {
+    final user = User(username: 'sam', role: Role.cleaner);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: HomeView(user: user),
+        routes: {
+          '/log-clean': (context) => const AuditView(title: 'Log cleans'),
+        },
+      ),
+    );
+
+    await tester.tap(find.text('Log cleans'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.text('Log cleans'), findsOneWidget);
+    expect(find.text('Yes / No'), findsOneWidget);
   });
 }
