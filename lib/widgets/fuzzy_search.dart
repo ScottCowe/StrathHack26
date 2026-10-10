@@ -1,46 +1,144 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:fuzzy_search_engine/fuzzy_search_engine.dart';
 
 class FuzzySearch extends StatefulWidget {
-  const FuzzySearch({required this.values, super.key});
+  const FuzzySearch({
+    required this.values,
+    required this.onSelected,
+    this.value,
+    this.label,
+    this.hint,
+    this.enabled = true,
+    super.key,
+  });
 
   final List<String> values;
+  final ValueChanged<String> onSelected;
+  final String? value;
+  final String? label;
+  final String? hint;
+  final bool enabled;
 
   @override
   State<StatefulWidget> createState() => FuzzySearchState();
 }
 
 class FuzzySearchState extends State<FuzzySearch> {
+  final searchController = TextEditingController();
+  final focusNode = FocusNode();
   List<String> results = [];
+  var _suppress = false;
+  var _applyingSelection = false;
 
-  void doSearch(String query) {
-    List<SearchableItem> items = [];
-    widget.values.asMap().forEach((index, value) {
-      items.add(SearchableItem(id: '$index', name: value));
-    });
-    final rresults = SearchEngine.fuzzySearch(items, query);
-    setState(() {
-      results = rresults.map((x) {
-        return x.name;
-      }).toList();
-    });
+  @override
+  void initState() {
+    super.initState();
+    searchController.text = widget.value ?? '';
+    searchController.addListener(_onText);
+    focusNode.addListener(_onFocus);
   }
 
-  void doNothing(String s) {
-    log(s);
+  @override
+  void didUpdateWidget(FuzzySearch oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final next = widget.value ?? '';
+    if (widget.value != oldWidget.value && next != searchController.text) {
+      _suppress = true;
+      searchController.text = next;
+      _suppress = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    focusNode.dispose();
+    super.dispose();
+  }
+
+  void _onText() {
+    if (_suppress || !focusNode.hasFocus) {
+      return;
+    }
+    _search(searchController.text);
+  }
+
+  void _onFocus() {
+    if (focusNode.hasFocus) {
+      _search('');
+      return;
+    }
+    if (_applyingSelection) {
+      _applyingSelection = false;
+      return;
+    }
+
+    final selected = widget.value ?? '';
+    if (searchController.text != selected) {
+      _suppress = true;
+      searchController.text = selected;
+      _suppress = false;
+    }
+    if (results.isNotEmpty) {
+      setState(() => results = []);
+    }
+  }
+
+  void _search(String query) {
+    final trimmed = query.trim();
+    final List<String> next;
+    if (trimmed.isEmpty) {
+      next = widget.values;
+    } else {
+      final items = [
+        for (var index = 0; index < widget.values.length; index++)
+          SearchableItem(id: '$index', name: widget.values[index]),
+      ];
+      next = SearchEngine.fuzzySearch(
+        items,
+        trimmed,
+      ).map((item) => item.name).toList();
+    }
+    setState(() => results = next);
+  }
+
+  void _select(String name) {
+    _applyingSelection = true;
+    _suppress = true;
+    searchController.text = name;
+    _suppress = false;
+    widget.onSelected(name);
+    setState(() => results = []);
+    focusNode.unfocus();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          SearchInput(onChange: doSearch),
-          SearchResult(results: results, selectResult: doNothing),
-        ],
+    final borderColor = Theme.of(context).colorScheme.outline;
+
+    return TapRegion(
+      onTapOutside: (_) => focusNode.unfocus(),
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: borderColor),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SearchInput(
+              controller: searchController,
+              focusNode: focusNode,
+              label: widget.label,
+              hint: widget.hint,
+              enabled: widget.enabled,
+            ),
+            if (results.isNotEmpty) ...[
+              Divider(height: 1, color: borderColor),
+              SearchResult(results: results, selectResult: _select),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -58,59 +156,58 @@ class SearchResult extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: results.map((res) {
-        void onPressed() => selectResult(res);
-        return ElevatedButton(onPressed: onPressed, child: Text(res));
-      }).toList(),
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxHeight: 200),
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          for (final result in results)
+            InkWell(
+              onTapDown: (_) => selectResult(result),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                child: Text(result),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
 
-class SearchInput extends StatefulWidget {
-  const SearchInput({required this.onChange, super.key});
+class SearchInput extends StatelessWidget {
+  const SearchInput({
+    required this.controller,
+    required this.focusNode,
+    this.label,
+    this.hint,
+    this.enabled = true,
+    super.key,
+  });
 
-  final void Function(String) onChange;
-
-  @override
-  State<SearchInput> createState() => _SearchInputState();
-}
-
-class _SearchInputState extends State<SearchInput> {
-  final searchController = TextEditingController();
-
-  @override
-  void dispose() {
-    searchController.dispose();
-    super.dispose();
-  }
-
-  void onChange() {
-    final text = searchController.text;
-    widget.onChange(text);
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    searchController.addListener(onChange);
-  }
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final String? label;
+  final String? hint;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      controller: searchController,
-      decoration: const InputDecoration(
-        border: OutlineInputBorder(),
-        hintText: 'ex: LT420',
+    return TextField(
+      controller: controller,
+      focusNode: focusNode,
+      enabled: enabled,
+      onTapOutside: (_) {},
+      decoration: InputDecoration(
+        border: InputBorder.none,
+        labelText: label,
+        hintText: hint,
+        contentPadding: const EdgeInsets.fromLTRB(12, 8, 0, 8),
+        suffixIcon: const Icon(Icons.arrow_drop_down),
       ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Please enter a room number';
-        }
-        return null;
-      },
     );
   }
 }
