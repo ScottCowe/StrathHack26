@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:strathclean/widgets/room_select.dart';
 
 class AuditView extends StatefulWidget {
   const AuditView({super.key});
@@ -8,10 +9,9 @@ class AuditView extends StatefulWidget {
 }
 
 class _AuditViewState extends State<AuditView> {
-  static const _roomNames = <String>[];
   static const _typeOptions = ['cleaning', 'external'];
 
-  String? _roomName;
+  int? _roomId;
   bool? _yesNo;
   String? _type;
   final _descriptionController = TextEditingController();
@@ -47,23 +47,9 @@ class _AuditViewState extends State<AuditView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            DropdownButtonFormField<String>(
-              value: _roomNames.contains(_roomName) ? _roomName : null,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Room name',
-              ),
-              hint: const Text('Select room'),
-              items: _roomNames
-                  .map(
-                    (room) => DropdownMenuItem(
-                      value: room,
-                      child: Text(room),
-                    ),
-                  )
-                  .toList(),
-              onChanged:
-                  _roomNames.isEmpty ? null : (value) => setState(() => _roomName = value),
+            RoomSelect(
+              value: _roomId,
+              onChanged: (id) => setState(() => _roomId = id),
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<bool>(
