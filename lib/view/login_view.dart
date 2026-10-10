@@ -14,8 +14,21 @@ class LoginView extends StatelessWidget {
         title: const Text('Login'),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
+        automaticallyImplyLeading: false,
       ),
-      body: LoginForm(viewModel: viewModel),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Image.asset(
+              'assets/images/strathlogo.png',
+              width: 200,
+              height: 200,
+            ),
+      LoginForm(viewModel: viewModel),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -46,7 +59,7 @@ class _LoginFormState extends State<LoginForm> {
       return;
     }
 
-    final success = await widget.viewModel.submitLogin(
+    final user = await widget.viewModel.submitLogin(
       _usernameController.text,
       _passwordController.text,
     );
@@ -55,55 +68,67 @@ class _LoginFormState extends State<LoginForm> {
       return;
     }
 
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(success ? 'Login successful' : 'Login failed'),
-      ),
+    if (user != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!context.mounted) {
+          return;
+        }
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/home',
+          (route) => false,
+          arguments: _usernameController.text.trim(),
+        );
+      });
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Login failed')),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: widget.viewModel,
-      builder: (context, _) {
-        return Form(
-          key: _formKey,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                TextFormField(
-                  controller: _usernameController,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    hintText: 'Username',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your username';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    hintText: 'Password',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                ElevatedButton(
+    return Form(
+      key: _formKey,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            TextFormField(
+              controller: _usernameController,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: 'Username',
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter your username';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _passwordController,
+              obscureText: true,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                hintText: 'Password',
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter your password';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+            ListenableBuilder(
+              listenable: widget.viewModel,
+              builder: (context, _) {
+                return ElevatedButton(
                   onPressed: widget.viewModel.isLoading ? null : _onSubmit,
                   child: widget.viewModel.isLoading
                       ? const SizedBox(
@@ -112,12 +137,12 @@ class _LoginFormState extends State<LoginForm> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Text('Submit'),
-                ),
-              ],
+                );
+              },
             ),
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
   }
 }
