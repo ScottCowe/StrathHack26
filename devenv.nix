@@ -7,5 +7,12 @@
 }:
 
 {
-  packages = with pkgs; [ flutter ];
+  packages = with pkgs; [
+  flutter
+  clang
+  cmake
+  ninja
+  pkg-config
+  gtk3
+];
 }
