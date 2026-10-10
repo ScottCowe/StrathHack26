@@ -14,6 +14,7 @@ class LoginView extends StatelessWidget {
         title: const Text('Login'),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
+        automaticallyImplyLeading: false,
       ),
       body: Center(
         child: Column(
@@ -72,7 +73,12 @@ class _LoginFormState extends State<LoginForm> {
         if (!context.mounted) {
           return;
         }
-        Navigator.pushReplacementNamed(context, '/home');
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          '/home',
+          (route) => false,
+          arguments: _usernameController.text.trim(),
+        );
       });
       return;
     }
