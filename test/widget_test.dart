@@ -11,7 +11,7 @@ void main() {
 
     await tester.pumpWidget(StrathCleanApp(authRepository: authRepository));
 
-    expect(find.text('Strath Clean'), findsOneWidget);
     expect(find.text('Login'), findsOneWidget);
+    expect(find.text('Submit'), findsOneWidget);
   });
 }
