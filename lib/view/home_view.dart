@@ -65,6 +65,15 @@ class HomeView extends StatelessWidget {
                     ElevatedButton(
                       onPressed: () => Navigator.pushNamed(
                         context,
+                        '/log-issue',
+                        arguments: user,
+                      ),
+                      child: const Text('Log issue'),
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pushNamed(
+                        context,
                         '/rooms',
                         arguments: user,
                       ),
@@ -97,6 +106,15 @@ class HomeView extends StatelessWidget {
                         arguments: user,
                       ),
                       child: const Text('Manage issues'),
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pushNamed(
+                        context,
+                        '/log-issue',
+                        arguments: user,
+                      ),
+                      child: const Text('Log issue'),
                     ),
                     const SizedBox(height: 12),
                     _BeginAudit(user: user, cleanService: cleanService),

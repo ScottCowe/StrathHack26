@@ -132,6 +132,25 @@ class CleanService {
     ];
   }
 
+  Future<void> logIssueForRoom({
+    required String room,
+    required String? description,
+    required String tag,
+  }) async {
+    final cleans = await _sql.query(
+      'select id from cleans where room = \$1 order by clean_time desc limit 1',
+      [room],
+    );
+    if (cleans.isEmpty) {
+      throw StateError('This room has not been cleaned');
+    }
+    await logIssue(
+      cleanId: (cleans.first['id'] as num).toInt(),
+      description: description,
+      tag: tag,
+    );
+  }
+
   Future<void> logIssue({
     required int cleanId,
     required String? description,

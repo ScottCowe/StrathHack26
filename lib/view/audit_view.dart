@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:strathclean/models/roles.dart';
 import 'package:strathclean/models/user.dart';
 import 'package:strathclean/services/clean_service.dart';
 import 'package:strathclean/widgets/room_select.dart';
@@ -8,12 +9,14 @@ class AuditView extends StatefulWidget {
     super.key,
     this.title = 'Audit',
     this.logsClean = false,
+    this.logsIssue = false,
     required this.user,
     required this.cleanService,
   });
 
   final String title;
   final bool logsClean;
+  final bool logsIssue;
   final User user;
   final CleanService cleanService;
 
@@ -22,13 +25,23 @@ class AuditView extends StatefulWidget {
 }
 
 class _AuditViewState extends State<AuditView> {
-  static const _typeOptions = ['cleaning', 'external'];
-
   String? _roomName;
-  bool? _yesNo;
+  bool? _yesNo = true;
   String? _type;
   final _descriptionController = TextEditingController();
   var _saving = false;
+
+  List<String> get _typeOptions => widget.user.role == Role.cleaner
+      ? const ['external']
+      : const ['cleaning', 'external'];
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.logsIssue && widget.user.role == Role.cleaner) {
+      _type = 'external';
+    }
+  }
 
   @override
   void dispose() {
@@ -50,28 +63,44 @@ class _AuditViewState extends State<AuditView> {
       'external' => 'external',
       _ => null,
     };
-    if (_yesNo != true && issueTag == null) {
+    if (widget.logsIssue) {
+      if (issueTag == null) return;
+    } else if (_yesNo != true && issueTag == null) {
+      return;
+    }
+    final description = _descriptionController.text.trim();
+    if ((widget.logsIssue || issueTag != null) && description.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter a description')),
+      );
       return;
     }
 
     setState(() => _saving = true);
     try {
-      final cleanId = widget.logsClean
-          ? await widget.cleanService.logClean(
-              username: widget.user.username,
-              room: room,
-            )
-          : await widget.cleanService.logAudit(
-              username: widget.user.username,
-              room: room,
-            );
-      if (issueTag != null) {
-        final description = _descriptionController.text.trim();
-        await widget.cleanService.logIssue(
-          cleanId: cleanId,
-          description: description.isEmpty ? null : description,
-          tag: issueTag,
+      if (widget.logsIssue) {
+        await widget.cleanService.logIssueForRoom(
+          room: room,
+          description: description,
+          tag: issueTag!,
         );
+      } else {
+        final cleanId = widget.logsClean
+            ? await widget.cleanService.logClean(
+                username: widget.user.username,
+                room: room,
+              )
+            : await widget.cleanService.logAudit(
+                username: widget.user.username,
+                room: room,
+              );
+        if (issueTag != null) {
+          await widget.cleanService.logIssue(
+            cleanId: cleanId,
+            description: description,
+            tag: issueTag,
+          );
+        }
       }
       if (!mounted) return;
       Navigator.pop(context);
@@ -80,9 +109,11 @@ class _AuditViewState extends State<AuditView> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            widget.logsClean
-                ? 'Could not log clean: $error'
-                : 'Could not save audit: $error',
+            widget.logsIssue
+                ? 'Could not log issue: $error'
+                : widget.logsClean
+                    ? 'Could not log clean: $error'
+                    : 'Could not save audit: $error',
           ),
         ),
       );
@@ -97,13 +128,15 @@ class _AuditViewState extends State<AuditView> {
       if (value != false) {
         _type = null;
         _descriptionController.clear();
+      } else if (widget.user.role == Role.cleaner) {
+        _type = 'external';
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final showIssueFields = _yesNo == false;
+    final showIssueFields = widget.logsIssue || _yesNo == false;
 
     return Scaffold(
       appBar: AppBar(
@@ -121,7 +154,8 @@ class _AuditViewState extends State<AuditView> {
               onChanged: (name) => setState(() => _roomName = name),
             ),
             const SizedBox(height: 12),
-            DropdownButtonFormField<bool>(
+            if (!widget.logsIssue)
+              DropdownButtonFormField<bool>(
               initialValue: _yesNo,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),

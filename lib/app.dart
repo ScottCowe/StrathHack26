@@ -65,6 +65,18 @@ class StrathCleanApp extends StatelessWidget {
             cleanService: cleanService,
           );
         },
+        '/log-issue': (context) {
+          final user = ModalRoute.of(context)?.settings.arguments as User?;
+          if (user == null) {
+            return LoginView(viewModel: LoginViewModel(authRepository));
+          }
+          return AuditView(
+            title: 'Log issue',
+            logsIssue: true,
+            user: user,
+            cleanService: cleanService,
+          );
+        },
         '/rooms': (context) => RoomsView(roomService: roomService),
         '/manage-rooms': (context) {
           final user = ModalRoute.of(context)?.settings.arguments as User?;
