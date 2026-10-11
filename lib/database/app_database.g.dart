@@ -1269,6 +1269,20 @@ class $IssuesTable extends Issues with TableInfo<$IssuesTable, Issue> {
     requiredDuringInsert: false,
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _loggedByMeta = const VerificationMeta(
+    'loggedBy',
+  );
+  @override
+  late final GeneratedColumn<int> loggedBy = GeneratedColumn<int>(
+    'logged_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1278,6 +1292,7 @@ class $IssuesTable extends Issues with TableInfo<$IssuesTable, Issue> {
     tag,
     priority,
     resolved,
+    loggedBy,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1323,6 +1338,12 @@ class $IssuesTable extends Issues with TableInfo<$IssuesTable, Issue> {
         resolved.isAcceptableOrUnknown(data['resolved']!, _resolvedMeta),
       );
     }
+    if (data.containsKey('logged_by')) {
+      context.handle(
+        _loggedByMeta,
+        loggedBy.isAcceptableOrUnknown(data['logged_by']!, _loggedByMeta),
+      );
+    }
     return context;
   }
 
@@ -1364,6 +1385,10 @@ class $IssuesTable extends Issues with TableInfo<$IssuesTable, Issue> {
         DriftSqlType.bool,
         data['${effectivePrefix}resolved'],
       )!,
+      loggedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}logged_by'],
+      ),
     );
   }
 
@@ -1386,6 +1411,7 @@ class Issue extends DataClass implements Insertable<Issue> {
   final TagName tag;
   final Priority priority;
   final bool resolved;
+  final int? loggedBy;
   const Issue({
     required this.id,
     required this.cleanId,
@@ -1394,6 +1420,7 @@ class Issue extends DataClass implements Insertable<Issue> {
     required this.tag,
     required this.priority,
     required this.resolved,
+    this.loggedBy,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1415,6 +1442,9 @@ class Issue extends DataClass implements Insertable<Issue> {
       );
     }
     map['resolved'] = Variable<bool>(resolved);
+    if (!nullToAbsent || loggedBy != null) {
+      map['logged_by'] = Variable<int>(loggedBy);
+    }
     return map;
   }
 
@@ -1431,6 +1461,9 @@ class Issue extends DataClass implements Insertable<Issue> {
       tag: Value(tag),
       priority: Value(priority),
       resolved: Value(resolved),
+      loggedBy: loggedBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(loggedBy),
     );
   }
 
@@ -1451,6 +1484,7 @@ class Issue extends DataClass implements Insertable<Issue> {
         serializer.fromJson<String>(json['priority']),
       ),
       resolved: serializer.fromJson<bool>(json['resolved']),
+      loggedBy: serializer.fromJson<int?>(json['loggedBy']),
     );
   }
   @override
@@ -1466,6 +1500,7 @@ class Issue extends DataClass implements Insertable<Issue> {
         $IssuesTable.$converterpriority.toJson(priority),
       ),
       'resolved': serializer.toJson<bool>(resolved),
+      'loggedBy': serializer.toJson<int?>(loggedBy),
     };
   }
 
@@ -1477,6 +1512,7 @@ class Issue extends DataClass implements Insertable<Issue> {
     TagName? tag,
     Priority? priority,
     bool? resolved,
+    Value<int?> loggedBy = const Value.absent(),
   }) => Issue(
     id: id ?? this.id,
     cleanId: cleanId ?? this.cleanId,
@@ -1485,6 +1521,7 @@ class Issue extends DataClass implements Insertable<Issue> {
     tag: tag ?? this.tag,
     priority: priority ?? this.priority,
     resolved: resolved ?? this.resolved,
+    loggedBy: loggedBy.present ? loggedBy.value : this.loggedBy,
   );
   Issue copyWithCompanion(IssuesCompanion data) {
     return Issue(
@@ -1497,6 +1534,7 @@ class Issue extends DataClass implements Insertable<Issue> {
       tag: data.tag.present ? data.tag.value : this.tag,
       priority: data.priority.present ? data.priority.value : this.priority,
       resolved: data.resolved.present ? data.resolved.value : this.resolved,
+      loggedBy: data.loggedBy.present ? data.loggedBy.value : this.loggedBy,
     );
   }
 
@@ -1509,14 +1547,28 @@ class Issue extends DataClass implements Insertable<Issue> {
           ..write('description: $description, ')
           ..write('tag: $tag, ')
           ..write('priority: $priority, ')
-          ..write('resolved: $resolved')
+          ..write('resolved: $resolved, ')
+          ..write('loggedBy: $loggedBy')
           ..write(')'))
         .toString();
   }
 
   @override
+<<<<<<< HEAD
   int get hashCode =>
       Object.hash(id, cleanId, image, description, tag, priority, resolved);
+=======
+  int get hashCode => Object.hash(
+    id,
+    cleanId,
+    $driftBlobEquality.hash(image),
+    description,
+    tag,
+    priority,
+    resolved,
+    loggedBy,
+  );
+>>>>>>> main
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1527,7 +1579,8 @@ class Issue extends DataClass implements Insertable<Issue> {
           other.description == this.description &&
           other.tag == this.tag &&
           other.priority == this.priority &&
-          other.resolved == this.resolved);
+          other.resolved == this.resolved &&
+          other.loggedBy == this.loggedBy);
 }
 
 class IssuesCompanion extends UpdateCompanion<Issue> {
@@ -1538,6 +1591,7 @@ class IssuesCompanion extends UpdateCompanion<Issue> {
   final Value<TagName> tag;
   final Value<Priority> priority;
   final Value<bool> resolved;
+  final Value<int?> loggedBy;
   const IssuesCompanion({
     this.id = const Value.absent(),
     this.cleanId = const Value.absent(),
@@ -1546,6 +1600,7 @@ class IssuesCompanion extends UpdateCompanion<Issue> {
     this.tag = const Value.absent(),
     this.priority = const Value.absent(),
     this.resolved = const Value.absent(),
+    this.loggedBy = const Value.absent(),
   });
   IssuesCompanion.insert({
     this.id = const Value.absent(),
@@ -1555,6 +1610,7 @@ class IssuesCompanion extends UpdateCompanion<Issue> {
     required TagName tag,
     required Priority priority,
     this.resolved = const Value.absent(),
+    this.loggedBy = const Value.absent(),
   }) : cleanId = Value(cleanId),
        tag = Value(tag),
        priority = Value(priority);
@@ -1566,6 +1622,7 @@ class IssuesCompanion extends UpdateCompanion<Issue> {
     Expression<String>? tag,
     Expression<String>? priority,
     Expression<bool>? resolved,
+    Expression<int>? loggedBy,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1575,6 +1632,7 @@ class IssuesCompanion extends UpdateCompanion<Issue> {
       if (tag != null) 'tag': tag,
       if (priority != null) 'priority': priority,
       if (resolved != null) 'resolved': resolved,
+      if (loggedBy != null) 'logged_by': loggedBy,
     });
   }
 
@@ -1586,6 +1644,7 @@ class IssuesCompanion extends UpdateCompanion<Issue> {
     Value<TagName>? tag,
     Value<Priority>? priority,
     Value<bool>? resolved,
+    Value<int?>? loggedBy,
   }) {
     return IssuesCompanion(
       id: id ?? this.id,
@@ -1595,6 +1654,7 @@ class IssuesCompanion extends UpdateCompanion<Issue> {
       tag: tag ?? this.tag,
       priority: priority ?? this.priority,
       resolved: resolved ?? this.resolved,
+      loggedBy: loggedBy ?? this.loggedBy,
     );
   }
 
@@ -1626,6 +1686,9 @@ class IssuesCompanion extends UpdateCompanion<Issue> {
     if (resolved.present) {
       map['resolved'] = Variable<bool>(resolved.value);
     }
+    if (loggedBy.present) {
+      map['logged_by'] = Variable<int>(loggedBy.value);
+    }
     return map;
   }
 
@@ -1638,7 +1701,8 @@ class IssuesCompanion extends UpdateCompanion<Issue> {
           ..write('description: $description, ')
           ..write('tag: $tag, ')
           ..write('priority: $priority, ')
-          ..write('resolved: $resolved')
+          ..write('resolved: $resolved, ')
+          ..write('loggedBy: $loggedBy')
           ..write(')'))
         .toString();
   }
@@ -1686,6 +1750,30 @@ typedef $$UsersTableUpdateCompanionBuilder = UsersCompanion Function({
   Value<String> passwordHash,
 });
 
+final class $$UsersTableReferences
+    extends BaseReferences<_$AppDatabase, $UsersTable, User> {
+  $$UsersTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$IssuesTable, List<Issue>> _issuesRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.issues,
+    aliasName: 'users__id__issues__logged_by',
+  );
+
+  $$IssuesTableProcessedTableManager get issuesRefs {
+    final manager = $$IssuesTableTableManager(
+      $_db,
+      $_db.issues,
+    ).filter((f) => f.loggedBy.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_issuesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
 class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
   $$UsersTableFilterComposer({
     required super.$db,
@@ -1714,6 +1802,31 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
     column: $table.passwordHash,
     builder: (column) => ColumnFilters(column),
   );
+
+  Expression<bool> issuesRefs(
+    Expression<bool> Function($$IssuesTableFilterComposer f) f,
+  ) {
+    final $$IssuesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.issues,
+      getReferencedColumn: (t) => t.loggedBy,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$IssuesTableFilterComposer(
+            $db: $db,
+            $table: $db.issues,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$UsersTableOrderingComposer
@@ -1768,6 +1881,31 @@ class $$UsersTableAnnotationComposer
     column: $table.passwordHash,
     builder: (column) => column,
   );
+
+  Expression<T> issuesRefs<T extends Object>(
+    Expression<T> Function($$IssuesTableAnnotationComposer a) f,
+  ) {
+    final $$IssuesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.issues,
+      getReferencedColumn: (t) => t.loggedBy,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$IssuesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.issues,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$UsersTableTableManager
@@ -1781,9 +1919,9 @@ class $$UsersTableTableManager
           $$UsersTableAnnotationComposer,
           $$UsersTableCreateCompanionBuilder,
           $$UsersTableUpdateCompanionBuilder,
-          (User, BaseReferences<_$AppDatabase, $UsersTable, User>),
+          (User, $$UsersTableReferences),
           User,
-          PrefetchHooks Function()
+          PrefetchHooks Function({bool issuesRefs})
         > {
   $$UsersTableTableManager(_$AppDatabase db, $UsersTable table)
     : super(
@@ -1824,15 +1962,33 @@ class $$UsersTableTableManager
               .map(
                 (e) => (
                   e.readTable<$UsersTable, User>(table),
-                  BaseReferences<_$AppDatabase, $UsersTable, User>(
-                    db,
-                    table,
-                    e,
-                  ),
+                  $$UsersTableReferences(db, table, e),
                 ),
               )
               .toList(),
-          prefetchHooksCallback: null,
+          prefetchHooksCallback: ({issuesRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (issuesRefs) db.issues],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (issuesRefs)
+                    await $_getPrefetchedData<User, $UsersTable, Issue>(
+                      currentTable: table,
+                      referencedTable: $$UsersTableReferences._issuesRefsTable(
+                        db,
+                      ),
+                      managerFromTypedResult: (p0) =>
+                          $$UsersTableReferences(db, table, p0).issuesRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.loggedBy == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
         ),
       );
 }
@@ -1847,9 +2003,9 @@ typedef $$UsersTableProcessedTableManager =
       $$UsersTableAnnotationComposer,
       $$UsersTableCreateCompanionBuilder,
       $$UsersTableUpdateCompanionBuilder,
-      (User, BaseReferences<_$AppDatabase, $UsersTable, User>),
+      (User, $$UsersTableReferences),
       User,
-      PrefetchHooks Function()
+      PrefetchHooks Function({bool issuesRefs})
     >;
 typedef $$RoomsTableCreateCompanionBuilder = RoomsCompanion Function({
   required String name,
@@ -2584,6 +2740,7 @@ typedef $$IssuesTableCreateCompanionBuilder = IssuesCompanion Function({
   required TagName tag,
   required Priority priority,
   Value<bool> resolved,
+  Value<int?> loggedBy,
 });
 typedef $$IssuesTableUpdateCompanionBuilder = IssuesCompanion Function({
   Value<int> id,
@@ -2593,6 +2750,7 @@ typedef $$IssuesTableUpdateCompanionBuilder = IssuesCompanion Function({
   Value<TagName> tag,
   Value<Priority> priority,
   Value<bool> resolved,
+  Value<int?> loggedBy,
 });
 
 final class $$IssuesTableReferences
@@ -2610,6 +2768,23 @@ final class $$IssuesTableReferences
       $_db.cleans,
     ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_cleanIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $UsersTable _loggedByTable(_$AppDatabase db) =>
+      db.users.createAlias('issues__logged_by__users__id');
+
+  $$UsersTableProcessedTableManager? get loggedBy {
+    final $_column = $_itemColumn<int>('logged_by');
+    if ($_column == null) return null;
+    final manager = $$UsersTableTableManager(
+      $_db,
+      $_db.users,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_loggedByTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -2672,6 +2847,29 @@ class $$IssuesTableFilterComposer
           }) => $$CleansTableFilterComposer(
             $db: $db,
             $table: $db.cleans,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$UsersTableFilterComposer get loggedBy {
+    final $$UsersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.loggedBy,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableFilterComposer(
+            $db: $db,
+            $table: $db.users,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -2743,6 +2941,29 @@ class $$IssuesTableOrderingComposer
     );
     return composer;
   }
+
+  $$UsersTableOrderingComposer get loggedBy {
+    final $$UsersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.loggedBy,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableOrderingComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$IssuesTableAnnotationComposer
@@ -2796,6 +3017,29 @@ class $$IssuesTableAnnotationComposer
     );
     return composer;
   }
+
+  $$UsersTableAnnotationComposer get loggedBy {
+    final $$UsersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.loggedBy,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$IssuesTableTableManager
@@ -2811,7 +3055,7 @@ class $$IssuesTableTableManager
           $$IssuesTableUpdateCompanionBuilder,
           (Issue, $$IssuesTableReferences),
           Issue,
-          PrefetchHooks Function({bool cleanId})
+          PrefetchHooks Function({bool cleanId, bool loggedBy})
         > {
   $$IssuesTableTableManager(_$AppDatabase db, $IssuesTable table)
     : super(
@@ -2833,6 +3077,7 @@ class $$IssuesTableTableManager
                 Value<TagName> tag = const Value.absent(),
                 Value<Priority> priority = const Value.absent(),
                 Value<bool> resolved = const Value.absent(),
+                Value<int?> loggedBy = const Value.absent(),
               }) => IssuesCompanion(
                 id: id,
                 cleanId: cleanId,
@@ -2841,6 +3086,7 @@ class $$IssuesTableTableManager
                 tag: tag,
                 priority: priority,
                 resolved: resolved,
+                loggedBy: loggedBy,
               ),
           createCompanionCallback:
               ({
@@ -2851,6 +3097,7 @@ class $$IssuesTableTableManager
                 required TagName tag,
                 required Priority priority,
                 Value<bool> resolved = const Value.absent(),
+                Value<int?> loggedBy = const Value.absent(),
               }) => IssuesCompanion.insert(
                 id: id,
                 cleanId: cleanId,
@@ -2859,6 +3106,7 @@ class $$IssuesTableTableManager
                 tag: tag,
                 priority: priority,
                 resolved: resolved,
+                loggedBy: loggedBy,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -2868,7 +3116,7 @@ class $$IssuesTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({cleanId = false}) {
+          prefetchHooksCallback: ({cleanId = false, loggedBy = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -2900,6 +3148,18 @@ class $$IssuesTableTableManager
                             .id,
                       ) as T;
                     }
+                    if (loggedBy) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.loggedBy,
+                        referencedTable: $$IssuesTableReferences._loggedByTable(
+                          db,
+                        ),
+                        referencedColumn: $$IssuesTableReferences
+                            ._loggedByTable(db)
+                            .id,
+                      ) as T;
+                    }
 
                     return state;
                   },
@@ -2924,7 +3184,7 @@ typedef $$IssuesTableProcessedTableManager =
       $$IssuesTableUpdateCompanionBuilder,
       (Issue, $$IssuesTableReferences),
       Issue,
-      PrefetchHooks Function({bool cleanId})
+      PrefetchHooks Function({bool cleanId, bool loggedBy})
     >;
 
 class $AppDatabaseManager {

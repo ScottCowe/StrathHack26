@@ -33,6 +33,7 @@ class StrathCleanApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
@@ -71,7 +72,7 @@ class StrathCleanApp extends StatelessWidget {
             );
           }
           return AuditView(
-            title: 'Log cleans',
+            title: 'Log clean',
             logsClean: true,
             user: user,
             cleanService: cleanService,

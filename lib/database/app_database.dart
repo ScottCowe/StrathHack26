@@ -66,7 +66,7 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 7) {
         await customStatement(
-          "alter table issues alter column image type text",
+          "alter table issues alter column image type text; alter table issues add column if not exists logged_by bigint references users (id);",
         );
       }
     }),
@@ -139,4 +139,5 @@ class Issues extends Table {
   //needs coords perhaps
   TextColumn get priority => textEnum<Priority>()();
   BoolColumn get resolved => boolean().withDefault(const Constant(false))();
+  IntColumn get loggedBy => integer().references(Users, #id).nullable()();
 }

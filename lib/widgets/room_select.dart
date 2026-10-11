@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:strathclean/kml.dart';
 import 'package:strathclean/services/sql_client.dart';
+import 'package:strathclean/widgets/fuzzy_search.dart';
 import 'package:strathclean/widgets/scan_room_number.dart';
 
 class RoomSelect extends StatefulWidget {
@@ -153,7 +154,7 @@ class _RoomSelectState extends State<RoomSelect> {
     widget.onChanged(null);
   }
 
-  void _onScan(String name) {
+  void _pickRoom(String name) {
     for (final room in _rooms) {
       if (room.name != name) continue;
       setState(() {
@@ -190,7 +191,7 @@ class _RoomSelectState extends State<RoomSelect> {
       ),
     );
     if (!mounted || code == null || code.isEmpty) return;
-    _onScan(code);
+    _pickRoom(code);
   }
 
   void _say(String message) {
@@ -211,6 +212,8 @@ class _RoomSelectState extends State<RoomSelect> {
     final names = [
       for (final room in _rooms)
         if (room.building == _building && room.floor == _floor) room.name,
+      for (final room in _rooms)
+        if (room.building != _building || room.floor != _floor) room.name,
     ];
     final selected = names.contains(widget.value) ? widget.value : null;
 
@@ -233,26 +236,23 @@ class _RoomSelectState extends State<RoomSelect> {
           label: 'Floor',
           value: _floor,
           items: floors,
-          hint: _building == null
-              ? 'Select building'
-              : floors.isEmpty
+          hint: _building != null && floors.isEmpty
               ? 'No floors'
               : 'Select floor',
           onChanged: _building != null && floors.isNotEmpty ? _pickFloor : null,
         ),
         const SizedBox(height: 12),
-        _menu(
-          label: 'Room',
+        FuzzySearch(
+          values: names,
           value: selected,
-          items: names,
-          hint: _floor == null
-              ? 'Select floor'
+          label: 'Room',
+          hint: !_loaded
+              ? 'Loading rooms'
               : names.isEmpty
               ? 'No rooms'
-              : 'Select room',
-          onChanged: _floor != null && names.isNotEmpty
-              ? widget.onChanged
-              : null,
+              : 'Type a room name',
+          enabled: _loaded && names.isNotEmpty,
+          onSelected: _pickRoom,
         ),
         const SizedBox(height: 8),
         OutlinedButton(
