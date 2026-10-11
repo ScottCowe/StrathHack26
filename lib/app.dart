@@ -46,6 +46,28 @@ class StrathCleanApp extends StatelessWidget {
           }
           return const AuditView();
         },
+        '/rooms': (context) => Scaffold(
+              appBar: AppBar(
+                title: const Text('View rooms'),
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+              ),
+            ),
+        '/manage-rooms': (context) {
+          final user = ModalRoute.of(context)?.settings.arguments as User?;
+          if (user == null || user.role != Role.supervisor) {
+            return const Scaffold(
+              body: Center(child: Text('Managing rooms is for supervisors only')),
+            );
+          }
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Manage rooms'),
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+            ),
+          );
+        },
         '/add-room': (context) {
           final user = ModalRoute.of(context)?.settings.arguments as User?;
           if (user == null || user.role != Role.supervisor) {

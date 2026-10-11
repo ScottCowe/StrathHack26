@@ -44,12 +44,30 @@ class HomeView extends StatelessWidget {
               ),
             ),
           ),
-          if (user.role == Role.supervisor)
-            Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
+          Expanded(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ElevatedButton(
+                    onPressed: () => Navigator.pushNamed(
+                      context,
+                      '/rooms',
+                      arguments: user,
+                    ),
+                    child: const Text('View rooms'),
+                  ),
+                  if (user.role == Role.supervisor) ...[
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pushNamed(
+                        context,
+                        '/manage-rooms',
+                        arguments: user,
+                      ),
+                      child: const Text('Manage rooms'),
+                    ),
+                    const SizedBox(height: 12),
                     ElevatedButton(
                       onPressed: () => Navigator.pushNamed(
                         context,
@@ -68,9 +86,10 @@ class HomeView extends StatelessWidget {
                       child: const Text('Add new room'),
                     ),
                   ],
-                ),
+                ],
               ),
             ),
+          ),
         ],
       ),
     );
