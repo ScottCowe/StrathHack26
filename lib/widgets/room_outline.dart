@@ -7,11 +7,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:strathclean/kml.dart';
 
-/// Tap corners of the room on the map, then drag them. Pops the KML string,
-/// or '' to clear.
-///
-/// shortcut: outdoor map, tiles stop at zoom 19. Swap the tile URL for an
-/// indoor floor plan when one exists.
 class RoomOutline extends StatefulWidget {
   const RoomOutline({super.key, required this.roomName, this.kml});
 
@@ -160,7 +155,6 @@ class _RoomOutlineState extends State<RoomOutline> {
               ),
               children: [
                 TileLayer(
-                  // OSM: no API key, and it works in the web build.
                   urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                   userAgentPackageName: 'strathclean',
                 ),
@@ -294,7 +288,6 @@ class _RoomOutlineState extends State<RoomOutline> {
   }
 }
 
-/// Wins the gesture immediately so dragging a corner does not pan the map.
 class _EagerPan extends PanGestureRecognizer {
   @override
   void addAllowedPointer(PointerDownEvent event) {
