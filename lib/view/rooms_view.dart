@@ -137,6 +137,7 @@ class _RoomsViewState extends State<RoomsView> {
         columns: [
           const DataColumn(label: Text('Name')),
           const DataColumn(label: Text('Last cleaned')),
+          const DataColumn(label: Text('Notes')),
           if (widget.canEdit) const DataColumn(label: Text('')),
         ],
         rows: [
@@ -147,6 +148,7 @@ class _RoomsViewState extends State<RoomsView> {
                 DataCell(
                   Text(room.cleanTime == null ? '' : _when(room.cleanTime!)),
                 ),
+                DataCell(Text(room.notes == null ? '': room.notes!)),
                 if (widget.canEdit)
                   DataCell(
                     TextButton(
