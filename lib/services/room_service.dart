@@ -5,9 +5,27 @@ class RoomService {
 
   final SqlClient _sql;
 
-  Future<List<String>> listRooms() async {
-    final rows = await _sql.query('select name from rooms order by name');
-    return [for (final row in rows) row['name'] as String];
+  Future<List<({String name, DateTime? cleanTime})>> listRooms() async {
+    final rows = await _sql.query(
+      'select rooms.name, max(cleans.clean_time) as clean_time '
+      'from rooms '
+      'left join cleans on cleans.room = rooms.name '
+      'group by rooms.name '
+      'order by rooms.name',
+    );
+    return [
+      for (final row in rows)
+        (
+          name: row['name'] as String,
+          cleanTime: switch (row['clean_time']) {
+            final num millis => DateTime.fromMillisecondsSinceEpoch(
+                millis.toInt(),
+                isUtc: true,
+              ).toLocal(),
+            _ => null,
+          },
+        ),
+    ];
   }
 
   Future<void> addRoom({required String name, String? notes}) {
