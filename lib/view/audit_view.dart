@@ -89,6 +89,7 @@ class _AuditViewState extends State<AuditView> {
       if (widget.logsIssue) {
         await widget.cleanService.logIssueForRoom(
           room: room,
+          username: widget.user.username,
           description: description,
           tag: issueTag!,
           priority: _priority!,
@@ -106,6 +107,7 @@ class _AuditViewState extends State<AuditView> {
         if (issueTag != null) {
           await widget.cleanService.logIssue(
             cleanId: cleanId,
+            username: widget.user.username,
             description: description,
             tag: issueTag,
             priority: _priority!,

@@ -66,7 +66,7 @@ class StrathCleanApp extends StatelessWidget {
             );
           }
           return AuditView(
-            title: 'Log cleans',
+            title: 'Log clean',
             logsClean: true,
             user: user,
             cleanService: cleanService,

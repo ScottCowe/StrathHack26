@@ -9,7 +9,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(Map<String, String> env) : super(_open(env));
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -62,6 +62,11 @@ class AppDatabase extends _$AppDatabase {
       if (from < 6) {
         await customStatement(
           'alter table rooms add column if not exists kml text',
+        );
+      }
+      if (from < 7) {
+        await customStatement(
+          'alter table issues add column if not exists logged_by bigint references users (id)',
         );
       }
     }),
@@ -134,4 +139,5 @@ class Issues extends Table {
   //needs coords perhaps
   TextColumn get priority => textEnum<Priority>()();
   BoolColumn get resolved => boolean().withDefault(const Constant(false))();
+  IntColumn get loggedBy => integer().references(Users, #id).nullable()();
 }

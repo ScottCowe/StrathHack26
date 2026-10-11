@@ -54,7 +54,7 @@ class HomeView extends StatelessWidget {
                           '/log-clean',
                           arguments: user,
                         ),
-                        child: const Text('Log cleans'),
+                        child: const Text('Log clean'),
                       ),
                       const SizedBox(height: 12),
                       ElevatedButton(
