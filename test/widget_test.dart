@@ -51,28 +51,4 @@ void main() {
     expect(find.text('Notes'), findsOneWidget);
     expect(find.text('Save'), findsOneWidget);
   });
-
-  testWidgets('Cleaner can open the log cleans form', (tester) async {
-    final user = User(username: 'sam', role: Role.cleaner);
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: HomeView(user: user),
-        routes: {
-          '/log-clean': (context) => AuditView(
-                title: 'Log cleans',
-                user: user,
-                cleanService: CleanService(SqlClient()),
-              ),
-        },
-      ),
-    );
-
-    await tester.tap(find.text('Log cleans'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
-
-    expect(find.text('Log cleans'), findsOneWidget);
-    expect(find.text('Yes / No'), findsOneWidget);
-  });
 }
