@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:strathclean/kml.dart';
 import 'package:strathclean/services/sql_client.dart';
 import 'package:strathclean/widgets/fuzzy_search.dart';
 
 class RoomSelect extends StatefulWidget {
-  const RoomSelect({
-    super.key,
-    required this.value,
-    required this.onChanged,
-  });
+  const RoomSelect({super.key, required this.value, required this.onChanged});
 
   final String? value;
   final ValueChanged<String?> onChanged;
@@ -17,9 +15,10 @@ class RoomSelect extends StatefulWidget {
 }
 
 class _RoomSelectState extends State<RoomSelect> {
-  List<String> _rooms = [];
+  List<({String name, String? kml})> _rooms = [];
   String? _error;
   var _loaded = false;
+  var _finding = false;
 
   @override
   void initState() {
@@ -30,20 +29,19 @@ class _RoomSelectState extends State<RoomSelect> {
   Future<void> _load() async {
     try {
       final rows = await SqlClient().query(
-        'select name from rooms order by name',
+        'select name, kml from rooms order by name',
       );
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       setState(() {
-        _rooms = [for (final row in rows) row['name'] as String];
+        _rooms = [
+          for (final row in rows)
+            (name: row['name'] as String, kml: row['kml'] as String?),
+        ];
         _error = null;
         _loaded = true;
       });
     } catch (error) {
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       setState(() {
         _error = error.toString();
         _loaded = true;
@@ -51,25 +49,87 @@ class _RoomSelectState extends State<RoomSelect> {
     }
   }
 
+  Future<void> _nearest() async {
+    if (_finding) return;
+    final outlined = [
+      for (final room in _rooms)
+        if (parseRoomPolygonKml(room.kml).length >= 3) room,
+    ];
+    if (outlined.isEmpty) {
+      _say('No rooms have an outline');
+      return;
+    }
+    setState(() => _finding = true);
+    try {
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (!mounted) return;
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        _say('Location is off');
+        return;
+      }
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 8),
+        ),
+      );
+      if (!mounted) return;
+      final nearest = closestRoom((
+        lat: position.latitude,
+        lon: position.longitude,
+      ), outlined);
+      if (nearest == null) {
+        _say('No rooms have an outline');
+        return;
+      }
+      widget.onChanged(nearest.name);
+      final distance = nearest.meters.round();
+      _say(
+        distance == 0
+            ? 'In ${nearest.name}'
+            : '${nearest.name}, ${distance}m away',
+      );
+    } catch (_) {
+      if (mounted) _say('Location is off');
+    } finally {
+      if (mounted) setState(() => _finding = false);
+    }
+  }
+
+  void _say(String message) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }
+
   @override
   Widget build(BuildContext context) {
-    final selected = _rooms.contains(widget.value) ? widget.value : null;
+    final names = [for (final room in _rooms) room.name];
+    final selected = names.contains(widget.value) ? widget.value : null;
     final hint = !_loaded
         ? 'Loading rooms'
         : _rooms.isEmpty
-            ? 'No rooms'
-            : 'Select room';
+        ? 'No rooms'
+        : 'Select room';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         FuzzySearch(
-          values: _rooms,
+          values: names,
           value: selected,
           label: 'Room',
           hint: hint,
           enabled: _loaded && _rooms.isNotEmpty,
           onSelected: widget.onChanged,
+        ),
+        const SizedBox(height: 8),
+        OutlinedButton(
+          onPressed: !_loaded || _finding ? null : _nearest,
+          child: Text(_finding ? 'Finding room' : 'Nearest room'),
         ),
         if (_error != null)
           Padding(
