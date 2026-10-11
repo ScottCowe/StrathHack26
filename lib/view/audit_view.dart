@@ -1,3 +1,4 @@
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:strathclean/models/roles.dart';
 import 'package:strathclean/models/user.dart';
@@ -226,9 +227,16 @@ class _AuditViewState extends State<AuditView> {
             ],
             const SizedBox(height: 12),
             ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamedAndRemoveUntil(context, "/take-picture", (route) => false);
+              },
+              child: const Text('Take photo?'),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
               onPressed: _saving ? null : _submit,
               child: const Text('Submit'),
-            ),
+            )
           ],
         ),
       ),
