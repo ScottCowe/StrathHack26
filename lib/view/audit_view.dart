@@ -7,11 +7,13 @@ class AuditView extends StatefulWidget {
   const AuditView({
     super.key,
     this.title = 'Audit',
+    this.logsClean = false,
     required this.user,
     required this.cleanService,
   });
 
   final String title;
+  final bool logsClean;
   final User user;
   final CleanService cleanService;
 
@@ -43,22 +45,46 @@ class _AuditViewState extends State<AuditView> {
       );
       return;
     }
-    if (_yesNo != true) {
+    final issueTag = switch (_type) {
+      'cleaning' => 'cleaners',
+      'external' => 'external',
+      _ => null,
+    };
+    if (_yesNo != true && issueTag == null) {
       return;
     }
 
     setState(() => _saving = true);
     try {
-      await widget.cleanService.logClean(
-        username: widget.user.username,
-        room: room,
-      );
+      final cleanId = widget.logsClean
+          ? await widget.cleanService.logClean(
+              username: widget.user.username,
+              room: room,
+            )
+          : await widget.cleanService.logAudit(
+              username: widget.user.username,
+              room: room,
+            );
+      if (issueTag != null) {
+        final description = _descriptionController.text.trim();
+        await widget.cleanService.logIssue(
+          cleanId: cleanId,
+          description: description.isEmpty ? null : description,
+          tag: issueTag,
+        );
+      }
       if (!mounted) return;
       Navigator.pop(context);
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not log clean: $error')),
+        SnackBar(
+          content: Text(
+            widget.logsClean
+                ? 'Could not log clean: $error'
+                : 'Could not save audit: $error',
+          ),
+        ),
       );
     } finally {
       if (mounted) setState(() => _saving = false);
