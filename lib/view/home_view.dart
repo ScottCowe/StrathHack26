@@ -49,6 +49,17 @@ class HomeView extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  if (user.role == Role.cleaner) ...[
+                    ElevatedButton(
+                      onPressed: () => Navigator.pushNamed(
+                        context,
+                        '/log-clean',
+                        arguments: user,
+                      ),
+                      child: const Text('Log cleans'),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
                   ElevatedButton(
                     onPressed: () => Navigator.pushNamed(
                       context,

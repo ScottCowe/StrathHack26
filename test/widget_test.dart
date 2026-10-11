@@ -6,6 +6,7 @@ import 'package:strathclean/models/roles.dart';
 import 'package:strathclean/models/user.dart';
 import 'package:strathclean/repositories/auth_repository.dart';
 import 'package:strathclean/services/auth_service.dart';
+import 'package:strathclean/services/clean_service.dart';
 import 'package:strathclean/services/room_service.dart';
 import 'package:strathclean/services/sql_client.dart';
 import 'package:strathclean/view/add_room_view.dart';
@@ -20,6 +21,7 @@ void main() {
       StrathCleanApp(
         authRepository: authRepository,
         roomService: RoomService(sql),
+        cleanService: CleanService(sql),
       ),
     );
 
