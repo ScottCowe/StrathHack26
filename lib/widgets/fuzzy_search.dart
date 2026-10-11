@@ -9,8 +9,8 @@ class FuzzySearch extends StatefulWidget {
     this.label,
     this.hint,
     this.enabled = true,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   final List<String> values;
   final ValueChanged<String> onSelected;
