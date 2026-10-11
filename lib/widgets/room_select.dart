@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:strathclean/kml.dart';
 import 'package:strathclean/services/sql_client.dart';
-import 'package:strathclean/widgets/fuzzy_search.dart';
 
 class RoomSelect extends StatefulWidget {
   const RoomSelect({super.key, required this.value, required this.onChanged});
@@ -15,7 +14,10 @@ class RoomSelect extends StatefulWidget {
 }
 
 class _RoomSelectState extends State<RoomSelect> {
-  List<({String name, String? kml})> _rooms = [];
+  List<({String name, String? building, String? floor, String? kml})> _rooms =
+      [];
+  String? _building;
+  String? _floor;
   String? _error;
   var _loaded = false;
   var _finding = false;
@@ -29,17 +31,23 @@ class _RoomSelectState extends State<RoomSelect> {
   Future<void> _load() async {
     try {
       final rows = await SqlClient().query(
-        'select name, kml from rooms order by name',
+        'select name, building, floor, kml from rooms order by name',
       );
       if (!mounted) return;
       setState(() {
         _rooms = [
           for (final row in rows)
-            (name: row['name'] as String, kml: row['kml'] as String?),
+            (
+              name: row['name'] as String,
+              building: _text(row['building']),
+              floor: _text(row['floor']),
+              kml: row['kml'] as String?,
+            ),
         ];
         _error = null;
         _loaded = true;
       });
+      await _nearest(quiet: true);
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -49,14 +57,20 @@ class _RoomSelectState extends State<RoomSelect> {
     }
   }
 
-  Future<void> _nearest() async {
-    if (_finding) return;
-    final outlined = [
+  List<({String name, String? building, String? floor, String? kml})>
+  _chosen() {
+    return [
       for (final room in _rooms)
-        if (parseRoomPolygonKml(room.kml).length >= 3) room,
+        if ((_building == null || room.building == _building) &&
+            (_floor == null || room.floor == _floor))
+          room,
     ];
-    if (outlined.isEmpty) {
-      _say('No rooms have an outline');
+  }
+
+  Future<void> _nearest({bool quiet = false}) async {
+    if (_finding) return;
+    if (!_outlined(_chosen())) {
+      if (!quiet) _say('No rooms have an outline');
       return;
     }
     setState(() => _finding = true);
@@ -68,7 +82,7 @@ class _RoomSelectState extends State<RoomSelect> {
       if (!mounted) return;
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
-        _say('Location is off');
+        if (!quiet) _say('Location is off');
         return;
       }
       final position = await Geolocator.getCurrentPosition(
@@ -78,26 +92,64 @@ class _RoomSelectState extends State<RoomSelect> {
         ),
       );
       if (!mounted) return;
-      final nearest = closestRoom((
-        lat: position.latitude,
-        lon: position.longitude,
-      ), outlined);
-      if (nearest == null) {
-        _say('No rooms have an outline');
+      final chosen = _chosen();
+      if (!_outlined(chosen)) {
+        if (!quiet) _say('No rooms have an outline');
         return;
       }
-      widget.onChanged(nearest.name);
-      final distance = nearest.meters.round();
-      _say(
-        distance == 0
-            ? 'In ${nearest.name}'
-            : '${nearest.name}, ${distance}m away',
-      );
+      final ranked = roomsByDistance((
+        lat: position.latitude,
+        lon: position.longitude,
+      ), [
+        for (final room in chosen) (name: room.name, kml: room.kml),
+      ]);
+      final byName = {for (final room in _rooms) room.name: room};
+      final nearest = ranked.first.meters == null ? null : ranked.first;
+      final room = nearest == null ? null : byName[nearest.name];
+      final picked = {for (final entry in ranked) entry.name};
+      final fill = room != null && (!quiet || widget.value == null);
+      setState(() {
+        _rooms = [
+          for (final entry in ranked) byName[entry.name]!,
+          for (final existing in _rooms)
+            if (!picked.contains(existing.name)) existing,
+        ];
+        if (fill) {
+          _building ??= room.building;
+          _floor ??= room.floor;
+        }
+      });
+      if (nearest == null || room == null) {
+        if (!quiet) _say('No rooms have an outline');
+        return;
+      }
+      if (fill) {
+        widget.onChanged(nearest.name);
+        final distance = nearest.meters!.round();
+        _say(
+          distance == 0
+              ? 'In ${nearest.name}'
+              : '${nearest.name}, ${distance}m away',
+        );
+      }
     } catch (_) {
-      if (mounted) _say('Location is off');
+      if (mounted && !quiet) _say('Location is off');
     } finally {
       if (mounted) setState(() => _finding = false);
     }
+  }
+
+  void _pickBuilding(String? building) {
+    setState(() {
+      _building = building;
+      _floor = null;
+    });
+    widget.onChanged(null);
+  }
+
+  void _pickFloor(String? floor) {
+    setState(() => _floor = floor);
+    widget.onChanged(null);
   }
 
   void _say(String message) {
@@ -107,24 +159,59 @@ class _RoomSelectState extends State<RoomSelect> {
 
   @override
   Widget build(BuildContext context) {
-    final names = [for (final room in _rooms) room.name];
+    final buildings = {
+      for (final room in _rooms)
+        if (room.building != null) room.building!,
+    }.toList()..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    final floors = {
+      for (final room in _rooms)
+        if (room.building == _building && room.floor != null) room.floor!,
+    }.toList()..sort(compareFloors);
+    final names = [
+      for (final room in _rooms)
+        if (room.building == _building && room.floor == _floor) room.name,
+    ];
     final selected = names.contains(widget.value) ? widget.value : null;
-    final hint = !_loaded
-        ? 'Loading rooms'
-        : _rooms.isEmpty
-        ? 'No rooms'
-        : 'Select room';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        FuzzySearch(
-          values: names,
-          value: selected,
+        _menu(
+          label: 'Building',
+          value: _building,
+          items: buildings,
+          hint: !_loaded
+              ? 'Loading rooms'
+              : buildings.isEmpty
+              ? 'No buildings'
+              : 'Select building',
+          onChanged: _loaded && buildings.isNotEmpty ? _pickBuilding : null,
+        ),
+        const SizedBox(height: 12),
+        _menu(
+          label: 'Floor',
+          value: _floor,
+          items: floors,
+          hint: _building == null
+              ? 'Select building'
+              : floors.isEmpty
+              ? 'No floors'
+              : 'Select floor',
+          onChanged: _building != null && floors.isNotEmpty ? _pickFloor : null,
+        ),
+        const SizedBox(height: 12),
+        _menu(
           label: 'Room',
-          hint: hint,
-          enabled: _loaded && _rooms.isNotEmpty,
-          onSelected: widget.onChanged,
+          value: selected,
+          items: names,
+          hint: _floor == null
+              ? 'Select floor'
+              : names.isEmpty
+              ? 'No rooms'
+              : 'Select room',
+          onChanged: _floor != null && names.isNotEmpty
+              ? widget.onChanged
+              : null,
         ),
         const SizedBox(height: 8),
         OutlinedButton(
@@ -142,4 +229,51 @@ class _RoomSelectState extends State<RoomSelect> {
       ],
     );
   }
+
+  Widget _menu({
+    required String label,
+    required String? value,
+    required List<String> items,
+    required String hint,
+    required ValueChanged<String?>? onChanged,
+  }) {
+    final selected = items.contains(value) ? value : null;
+    return DropdownButtonFormField<String>(
+      key: ValueKey('$label:$selected'),
+      initialValue: selected,
+      isExpanded: true,
+      decoration: InputDecoration(
+        border: const OutlineInputBorder(),
+        labelText: label,
+      ),
+      hint: Text(hint),
+      items: [
+        for (final item in items)
+          DropdownMenuItem(value: item, child: Text(item)),
+      ],
+      onChanged: onChanged,
+    );
+  }
+}
+
+bool _outlined(
+  List<({String name, String? building, String? floor, String? kml})> rooms,
+) {
+  for (final room in rooms) {
+    if (parseRoomPolygonKml(room.kml).length >= 3) return true;
+  }
+  return false;
+}
+
+String? _text(Object? value) {
+  if (value is! String) return null;
+  final text = value.trim();
+  return text.isEmpty ? null : text;
+}
+
+int compareFloors(String a, String b) {
+  final left = int.tryParse(a);
+  final right = int.tryParse(b);
+  if (left != null && right != null) return left.compareTo(right);
+  return a.toLowerCase().compareTo(b.toLowerCase());
 }

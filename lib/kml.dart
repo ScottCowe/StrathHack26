@@ -54,24 +54,28 @@ List<GeoPoint> parseRoomPolygonKml(String? kml) {
   return points;
 }
 
-/// The outline the phone is in, or the nearest one. Null when none have corners.
-({String name, double meters})? closestRoom(
+/// Nearest outline first. [meters] is null when the room has no 3-corner
+/// outline; those stay at the end, in their original order.
+List<({String name, String? kml, double? meters})> roomsByDistance(
   GeoPoint here,
   Iterable<({String name, String? kml})> rooms,
 ) {
-  String? name;
-  var meters = double.infinity;
+  final near = <({String name, String? kml, double? meters})>[];
+  final rest = <({String name, String? kml, double? meters})>[];
   for (final room in rooms) {
     final points = parseRoomPolygonKml(room.kml);
-    if (points.length < 3) continue;
-    final distance = _distanceToPolygon(here, points);
-    if (distance < meters) {
-      meters = distance;
-      name = room.name;
+    if (points.length < 3) {
+      rest.add((name: room.name, kml: room.kml, meters: null));
+    } else {
+      near.add((
+        name: room.name,
+        kml: room.kml,
+        meters: _distanceToPolygon(here, points),
+      ));
     }
   }
-  if (name == null) return null;
-  return (name: name, meters: meters);
+  near.sort((a, b) => a.meters!.compareTo(b.meters!));
+  return [...near, ...rest];
 }
 
 double _distanceToPolygon(GeoPoint here, List<GeoPoint> ring) {
