@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:strathclean/kml.dart';
 import 'package:strathclean/services/sql_client.dart';
-import 'package:strathclean/widgets/fuzzy_search.dart';
 
 class RoomSelect extends StatefulWidget {
   const RoomSelect({super.key, required this.value, required this.onChanged});
@@ -127,13 +126,20 @@ class _RoomSelectState extends State<RoomSelect> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        FuzzySearch(
-          values: names,
-          value: selected,
-          label: 'Room',
-          hint: hint,
-          enabled: _loaded && _rooms.isNotEmpty,
-          onSelected: widget.onChanged,
+        DropdownButtonFormField<String>(
+          key: ValueKey(selected),
+          initialValue: selected,
+          isExpanded: true,
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            labelText: 'Room',
+          ),
+          hint: Text(hint),
+          items: [
+            for (final name in names)
+              DropdownMenuItem(value: name, child: Text(name)),
+          ],
+          onChanged: _loaded && names.isNotEmpty ? widget.onChanged : null,
         ),
         const SizedBox(height: 8),
         OutlinedButton(
