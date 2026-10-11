@@ -40,6 +40,7 @@ class _RoomSelectState extends State<RoomSelect> {
         _error = null;
         _loaded = true;
       });
+      await _nearest(quiet: true);
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -49,14 +50,14 @@ class _RoomSelectState extends State<RoomSelect> {
     }
   }
 
-  Future<void> _nearest() async {
+  Future<void> _nearest({bool quiet = false}) async {
     if (_finding) return;
     final outlined = [
       for (final room in _rooms)
         if (parseRoomPolygonKml(room.kml).length >= 3) room,
     ];
     if (outlined.isEmpty) {
-      _say('No rooms have an outline');
+      if (!quiet) _say('No rooms have an outline');
       return;
     }
     setState(() => _finding = true);
@@ -68,7 +69,7 @@ class _RoomSelectState extends State<RoomSelect> {
       if (!mounted) return;
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
-        _say('Location is off');
+        if (!quiet) _say('Location is off');
         return;
       }
       final position = await Geolocator.getCurrentPosition(
@@ -78,23 +79,31 @@ class _RoomSelectState extends State<RoomSelect> {
         ),
       );
       if (!mounted) return;
-      final nearest = closestRoom((
+      final ranked = roomsByDistance((
         lat: position.latitude,
         lon: position.longitude,
-      ), outlined);
+      ), _rooms);
+      final nearest = ranked.first.meters == null ? null : ranked.first;
+      setState(() {
+        _rooms = [
+          for (final room in ranked) (name: room.name, kml: room.kml),
+        ];
+      });
       if (nearest == null) {
-        _say('No rooms have an outline');
+        if (!quiet) _say('No rooms have an outline');
         return;
       }
-      widget.onChanged(nearest.name);
-      final distance = nearest.meters.round();
-      _say(
-        distance == 0
-            ? 'In ${nearest.name}'
-            : '${nearest.name}, ${distance}m away',
-      );
+      if (!quiet || widget.value == null) {
+        widget.onChanged(nearest.name);
+        final distance = nearest.meters!.round();
+        _say(
+          distance == 0
+              ? 'In ${nearest.name}'
+              : '${nearest.name}, ${distance}m away',
+        );
+      }
     } catch (_) {
-      if (mounted) _say('Location is off');
+      if (mounted && !quiet) _say('Location is off');
     } finally {
       if (mounted) setState(() => _finding = false);
     }
