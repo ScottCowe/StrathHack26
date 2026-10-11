@@ -5,13 +5,22 @@ class RoomService {
 
   final SqlClient _sql;
 
-  Future<List<({String name, String? notes, DateTime? cleanTime})>>
+  Future<
+      List<
+          ({
+            String name,
+            String? notes,
+            String? building,
+            String? floor,
+            DateTime? cleanTime,
+          })>>
   listRooms() async {
     final rows = await _sql.query(
-      'select rooms.name, rooms.notes, max(cleans.clean_time) as clean_time '
+      'select rooms.name, rooms.notes, rooms.building, rooms.floor, '
+      'max(cleans.clean_time) as clean_time '
       'from rooms '
       'left join cleans on cleans.room = rooms.name '
-      'group by rooms.name, rooms.notes '
+      'group by rooms.name, rooms.notes, rooms.building, rooms.floor '
       'order by rooms.name',
     );
     return [
@@ -19,6 +28,8 @@ class RoomService {
         (
           name: row['name'] as String,
           notes: row['notes'] as String?,
+          building: row['building'] as String?,
+          floor: row['floor'] as String?,
           cleanTime: switch (row['clean_time']) {
             final num millis => DateTime.fromMillisecondsSinceEpoch(
                 millis.toInt(),
@@ -34,10 +45,13 @@ class RoomService {
     required String name,
     required String newName,
     String? notes,
+    String? building,
+    String? floor,
   }) {
     return _sql.query(
-      'update rooms set name = \$1, notes = \$2 where name = \$3',
-      [newName, notes, name],
+      'update rooms set name = \$1, notes = \$2, building = \$3, floor = \$4 '
+      'where name = \$5',
+      [newName, notes, building, floor, name],
     );
   }
 
@@ -45,10 +59,15 @@ class RoomService {
     return _sql.query('delete from rooms where name = \$1', [name]);
   }
 
-  Future<void> addRoom({required String name, String? notes}) {
+  Future<void> addRoom({
+    required String name,
+    String? notes,
+    String? building,
+    String? floor,
+  }) {
     return _sql.query(
-      'insert into rooms (name, notes) values (\$1, \$2)',
-      [name, notes],
+      'insert into rooms (name, notes, building, floor) values (\$1, \$2, \$3, \$4)',
+      [name, notes, building, floor],
     );
   }
 }

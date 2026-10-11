@@ -47,6 +47,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Room name'), findsOneWidget);
+    expect(find.text('Building'), findsOneWidget);
+    expect(find.text('Floor'), findsOneWidget);
     expect(find.text('Notes'), findsOneWidget);
     expect(find.text('Save'), findsOneWidget);
   });
