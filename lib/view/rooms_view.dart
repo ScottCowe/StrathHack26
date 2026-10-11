@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:strathclean/models/user.dart';
 import 'package:strathclean/services/room_service.dart';
 
 class RoomsView extends StatefulWidget {
@@ -7,10 +8,12 @@ class RoomsView extends StatefulWidget {
     super.key,
     required this.roomService,
     this.canEdit = false,
+    this.user,
   });
 
   final RoomService roomService;
   final bool canEdit;
+  final User? user;
 
   @override
   State<RoomsView> createState() => _RoomsViewState();
@@ -60,8 +63,30 @@ class _RoomsViewState extends State<RoomsView> {
         backgroundColor: const Color.fromARGB(255, 19, 8, 68),
         foregroundColor: Colors.white,
       ),
-      body: _body(),
+      body: Column(
+        children: [
+          if (widget.canEdit)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: ElevatedButton(
+                onPressed: _add,
+                child: const Text('Add new room'),
+              ),
+            ),
+          Expanded(child: _body()),
+        ],
+      ),
     );
+  }
+
+  Future<void> _add() async {
+    await Navigator.pushNamed(
+      context,
+      '/add-room',
+      arguments: widget.user,
+    );
+    if (!mounted) return;
+    await _load();
   }
 
   Future<void> _edit(
@@ -157,40 +182,53 @@ class _RoomsViewState extends State<RoomsView> {
     if (!_loaded) return const Center(child: CircularProgressIndicator());
     if (_error != null) return Center(child: Text(_error!));
     if (_rooms.isEmpty) return const Center(child: Text('No rooms'));
-    return SingleChildScrollView(
-      child: DataTable(
-        columnSpacing: 24,
-        horizontalMargin: 16,
-        columns: [
-          const DataColumn(label: Text('Name')),
-          const DataColumn(label: Text('Building')),
-          const DataColumn(label: Text('Floor')),
-          const DataColumn(label: Text('Last cleaned')),
-          const DataColumn(label: Text('Notes')),
-          if (widget.canEdit) const DataColumn(label: Text('')),
-        ],
-        rows: [
-          for (final room in _rooms)
-            DataRow(
-              cells: [
-                DataCell(Text(room.name)),
-                DataCell(Text(room.building ?? '')),
-                DataCell(Text(room.floor ?? '')),
-                DataCell(
-                  Text(room.cleanTime == null ? '' : _when(room.cleanTime!)),
+    return ListView.separated(
+      padding: const EdgeInsets.all(16),
+      itemCount: _rooms.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        final room = _rooms[index];
+        final place = [
+          if (room.building != null && room.building!.isNotEmpty) room.building!,
+          if (room.floor != null && room.floor!.isNotEmpty) 'Floor ${room.floor}',
+        ].join(' · ');
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  room.name,
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
-                DataCell(Text(room.notes == null ? '': room.notes!)),
+                if (place.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(place),
+                ],
+                const SizedBox(height: 8),
+                Text(
+                  room.cleanTime == null
+                      ? 'Not cleaned yet'
+                      : 'Last cleaned ${_when(room.cleanTime!)}',
+                ),
+                if (room.notes != null && room.notes!.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(room.notes!),
+                ],
                 if (widget.canEdit)
-                  DataCell(
-                    TextButton(
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
                       onPressed: () => _edit(room),
                       child: const Text('Edit'),
                     ),
                   ),
               ],
             ),
-        ],
-      ),
+          ),
+        );
+      },
     );
   }
 }

@@ -119,15 +119,6 @@ class HomeView extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     _BeginAudit(user: user, cleanService: cleanService),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      onPressed: () => Navigator.pushNamed(
-                        context,
-                        '/add-room',
-                        arguments: user,
-                      ),
-                      child: const Text('Add new room'),
-                    ),
                   ],
                 ],
                 ),

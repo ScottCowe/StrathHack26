@@ -66,12 +66,14 @@ class CleanService {
             String tag,
             String priority,
             bool resolved,
+            String? loggedBy,
           })>> listIssues() async {
     final rows = await _sql.query(
       'select issues.id, cleans.room, issues.description, issues.tag, '
-      'issues.priority, issues.resolved '
+      'issues.priority, issues.resolved, users.username as logged_by '
       'from issues '
       'left join cleans on cleans.id = issues.clean_id '
+      'left join users on users.id = cleans.cleaned_by '
       'where issues.resolved = false '
       'order by issues.id',
     );
@@ -84,6 +86,7 @@ class CleanService {
           tag: row['tag'] as String,
           priority: row['priority'] as String,
           resolved: row['resolved'] == true,
+          loggedBy: row['logged_by'] as String?,
         ),
     ];
   }

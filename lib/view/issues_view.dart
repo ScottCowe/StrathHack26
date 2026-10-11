@@ -9,6 +9,7 @@ typedef _Issue = ({
   String tag,
   String priority,
   bool resolved,
+  String? loggedBy,
 });
 
 class IssuesView extends StatefulWidget {
@@ -127,38 +128,40 @@ class _IssuesViewState extends State<IssuesView> {
     if (!_loaded) return const Center(child: CircularProgressIndicator());
     if (_error != null) return Center(child: Text(_error!));
     if (_issues.isEmpty) return const Center(child: Text('No issues'));
-    return SingleChildScrollView(
-      child: DataTable(
-        columnSpacing: 24,
-        horizontalMargin: 16,
-        columns: [
-          const DataColumn(label: Text('Room')),
-          const DataColumn(label: Text('Description')),
-          const DataColumn(label: Text('Tag')),
-          const DataColumn(label: Text('Priority')),
-          const DataColumn(label: Text('Resolved')),
-          if (widget.canEdit) const DataColumn(label: Text('')),
-        ],
-        rows: [
-          for (final issue in _issues)
-            DataRow(
-              cells: [
-                DataCell(Text(issue.room ?? '')),
-                DataCell(Text(issue.description ?? '')),
-                DataCell(Text(_tagLabel(issue.tag))),
-                DataCell(Text(_label(issue.priority))),
-                DataCell(Text(issue.resolved ? 'Yes' : 'No')),
+    return ListView.separated(
+      padding: const EdgeInsets.all(16),
+      itemCount: _issues.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        final issue = _issues[index];
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  issue.room ?? 'Unknown room',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 4),
+                Text(issue.description ?? ''),
+                const SizedBox(height: 8),
+                Text('${_tagLabel(issue.tag)} · ${_label(issue.priority)}'),
+                Text('Logged by ${issue.loggedBy ?? 'Unknown'}'),
                 if (widget.canEdit)
-                  DataCell(
-                    TextButton(
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
                       onPressed: () => _edit(issue),
                       child: const Text('Edit'),
                     ),
                   ),
               ],
             ),
-        ],
-      ),
+          ),
+        );
+      },
     );
   }
 

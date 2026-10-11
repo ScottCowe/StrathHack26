@@ -26,7 +26,7 @@ class AuditView extends StatefulWidget {
 
 class _AuditViewState extends State<AuditView> {
   String? _roomName;
-  bool? _yesNo = true;
+  bool? _yesNo = false;
   String? _type;
   final _descriptionController = TextEditingController();
   var _saving = false;
@@ -65,7 +65,7 @@ class _AuditViewState extends State<AuditView> {
     };
     if (widget.logsIssue) {
       if (issueTag == null) return;
-    } else if (_yesNo != true && issueTag == null) {
+    } else if (_yesNo == true && issueTag == null) {
       return;
     }
     final description = _descriptionController.text.trim();
@@ -125,7 +125,7 @@ class _AuditViewState extends State<AuditView> {
   void _onYesNoChanged(bool? value) {
     setState(() {
       _yesNo = value;
-      if (value != false) {
+      if (value != true) {
         _type = null;
         _descriptionController.clear();
       } else if (widget.user.role == Role.cleaner) {
@@ -136,7 +136,7 @@ class _AuditViewState extends State<AuditView> {
 
   @override
   Widget build(BuildContext context) {
-    final showIssueFields = widget.logsIssue || _yesNo == false;
+    final showIssueFields = widget.logsIssue || _yesNo == true;
 
     return Scaffold(
       appBar: AppBar(
@@ -159,7 +159,7 @@ class _AuditViewState extends State<AuditView> {
               initialValue: _yesNo,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
-                labelText: 'Yes / No',
+                labelText: 'Any issues?',
               ),
               hint: const Text('Select'),
               items: const [
