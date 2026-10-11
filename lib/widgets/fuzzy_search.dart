@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:fuzzy_search_engine/fuzzy_search_engine.dart';
 
@@ -9,8 +11,8 @@ class FuzzySearch extends StatefulWidget {
     this.label,
     this.hint,
     this.enabled = true,
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
 
   final List<String> values;
   final ValueChanged<String> onSelected;
@@ -102,7 +104,7 @@ class FuzzySearchState extends State<FuzzySearch> {
     setState(() => results = next);
   }
 
-  void _select(String name) {
+  void select(String name) {
     _applyingSelection = true;
     _suppress = true;
     searchController.text = name;
@@ -135,7 +137,7 @@ class FuzzySearchState extends State<FuzzySearch> {
             ),
             if (results.isNotEmpty) ...[
               Divider(height: 1, color: borderColor),
-              SearchResult(results: results, selectResult: _select),
+              SearchResult(results: results, selectResult: select),
             ],
           ],
         ),

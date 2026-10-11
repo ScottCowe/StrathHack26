@@ -19,9 +19,8 @@ class _CameraViewState extends State<ScanRoomNumber> {
   final TextRecognizer recognizer = TextRecognizer(
     script: TextRecognitionScript.latin,
   );
-  String roomNumber = '';
 
-  Timer? timer;
+  String roomNumber = '';
 
   Future<void> recognizeText() async {
     if (controller == null) {
@@ -36,9 +35,14 @@ class _CameraViewState extends State<ScanRoomNumber> {
       inputImg,
     );
 
+    RegExp re = RegExp(r'\b[A-Z]{2}\d{3,4}\b');
+    RegExpMatch? roomNumberRe = re.firstMatch(recognizedText.text);
+
+    if (roomNumberRe != null) {
+      roomNumber = roomNumberRe[0]!;
+    }
+
     setState(() {
-      RegExp re = RegExp(r'\b[A-Z]{2}\d{3,4}\b');
-      roomNumber = re.firstMatch(recognizedText.text).toString();
       widget.onDetect(roomNumber);
     });
   }
@@ -73,14 +77,12 @@ class _CameraViewState extends State<ScanRoomNumber> {
             }
           });
     })();
-
-    timer = Timer.periodic(Duration(seconds: 1), (Timer t) => recognizeText());
   }
 
   @override
   void dispose() {
-    controller!.dispose();
     recognizer.close();
+    controller!.dispose();
     super.dispose();
   }
 
@@ -92,6 +94,18 @@ class _CameraViewState extends State<ScanRoomNumber> {
       return Text('loading');
     }
 
-    return CameraPreview(controller!);
+    return Stack(
+      children: [
+        CameraPreview(controller!),
+        Positioned(
+          child: Center(
+            child: ElevatedButton(
+              onPressed: recognizeText,
+              child: const Text("Scan"),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

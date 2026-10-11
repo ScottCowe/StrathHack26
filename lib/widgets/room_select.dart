@@ -14,9 +14,12 @@ class RoomSelect extends StatefulWidget {
 }
 
 class _RoomSelectState extends State<RoomSelect> {
+  GlobalKey<FuzzySearchState> fss = GlobalKey<FuzzySearchState>();
+
   List<String> _rooms = [];
   String? _error;
   var _loaded = false;
+  String? selected;
 
   @override
   void initState() {
@@ -48,9 +51,11 @@ class _RoomSelectState extends State<RoomSelect> {
     }
   }
 
+  void setSelected(String s) {}
+
   @override
   Widget build(BuildContext context) {
-    String? selected = _rooms.contains(widget.value) ? widget.value : null;
+    final selected = _rooms.contains(widget.value) ? widget.value : null;
     final hint = !_loaded
         ? 'Loading rooms'
         : _rooms.isEmpty
@@ -60,9 +65,11 @@ class _RoomSelectState extends State<RoomSelect> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (selected != null)
+        if (selected == null)
           ScanRoomNumber(
-            onDetect: (s) => selected = _rooms.contains(s) ? s : null,
+            onDetect: (s) {
+              fss.currentState!.select(s);
+            },
           ),
         FuzzySearch(
           values: _rooms,
@@ -71,6 +78,7 @@ class _RoomSelectState extends State<RoomSelect> {
           hint: hint,
           enabled: _loaded && _rooms.isNotEmpty,
           onSelected: widget.onChanged,
+          key: fss,
         ),
         if (_error != null)
           Padding(
