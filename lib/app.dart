@@ -39,7 +39,7 @@ class StrathCleanApp extends StatelessWidget {
           if (user == null) {
             return LoginView(viewModel: LoginViewModel(authRepository));
           }
-          return HomeView(user: user);
+          return HomeView(user: user, cleanService: cleanService);
         },
         '/audit': (context) {
           final user =
@@ -61,6 +61,18 @@ class StrathCleanApp extends StatelessWidget {
           return AuditView(
             title: 'Log cleans',
             logsClean: true,
+            user: user,
+            cleanService: cleanService,
+          );
+        },
+        '/log-issue': (context) {
+          final user = ModalRoute.of(context)?.settings.arguments as User?;
+          if (user == null) {
+            return LoginView(viewModel: LoginViewModel(authRepository));
+          }
+          return AuditView(
+            title: 'Log issue',
+            logsIssue: true,
             user: user,
             cleanService: cleanService,
           );

@@ -105,6 +105,52 @@ class CleanService {
     return _sql.query('delete from issues where id = \$1', [id]);
   }
 
+  Future<List<({String room, String cleaner, DateTime cleanTime, String? issues})>>
+  pendingAudits() async {
+    final rows = await _sql.query(
+      'select c.room, u.username as cleaner, c.clean_time, '
+      '(select string_agg(i.description, \', \') from issues i '
+      'join cleans older on older.id = i.clean_id '
+      'where older.room = c.room and i.description is not null) as issues '
+      'from cleans c '
+      'join users u on u.id = c.cleaned_by '
+      'where c.audited = false and c.clean_time = ('
+      'select max(latest.clean_time) from cleans latest where latest.room = c.room'
+      ') order by random() limit 5',
+    );
+    return [
+      for (final row in rows)
+        (
+          room: row['room'] as String,
+          cleaner: row['cleaner'] as String,
+          cleanTime: DateTime.fromMillisecondsSinceEpoch(
+            (row['clean_time'] as num).toInt(),
+            isUtc: true,
+          ).toLocal(),
+          issues: row['issues'] as String?,
+        ),
+    ];
+  }
+
+  Future<void> logIssueForRoom({
+    required String room,
+    required String? description,
+    required String tag,
+  }) async {
+    final cleans = await _sql.query(
+      'select id from cleans where room = \$1 order by clean_time desc limit 1',
+      [room],
+    );
+    if (cleans.isEmpty) {
+      throw StateError('This room has not been cleaned');
+    }
+    await logIssue(
+      cleanId: (cleans.first['id'] as num).toInt(),
+      description: description,
+      tag: tag,
+    );
+  }
+
   Future<void> logIssue({
     required int cleanId,
     required String? description,
