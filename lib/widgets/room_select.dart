@@ -166,6 +166,33 @@ class _RoomSelectState extends State<RoomSelect> {
     _say('No room $name');
   }
 
+  Future<void> _scan() async {
+    final code = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        builder: (routeContext) => Scaffold(
+          appBar: AppBar(
+            title: const Text('Scan room code'),
+            backgroundColor: const Color.fromARGB(255, 19, 8, 68),
+            foregroundColor: Colors.white,
+          ),
+          body: SizedBox.expand(
+            child: ScanRoomNumber(
+              onDetect: (code) {
+                if (code.isEmpty) return;
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (routeContext.mounted) Navigator.pop(routeContext, code);
+                });
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+    if (!mounted || code == null || code.isEmpty) return;
+    _onScan(code);
+  }
+
   void _say(String message) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(message)));
@@ -190,8 +217,6 @@ class _RoomSelectState extends State<RoomSelect> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (selected == null)
-          ScanRoomNumber(onDetect: _onScan),
         _menu(
           label: 'Building',
           value: _building,
@@ -233,6 +258,11 @@ class _RoomSelectState extends State<RoomSelect> {
         OutlinedButton(
           onPressed: !_loaded || _finding ? null : _nearest,
           child: Text(_finding ? 'Finding room' : 'Nearest room'),
+        ),
+        const SizedBox(height: 8),
+        TextButton(
+          onPressed: _loaded ? _scan : null,
+          child: const Text("Can't see room? Tap here to scan room code"),
         ),
         if (_error != null)
           Padding(
