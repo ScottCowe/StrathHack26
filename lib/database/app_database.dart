@@ -9,64 +9,62 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(Map<String, String> env) : super(_open(env));
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
-  MigrationStrategy get migration =>
-      MigrationStrategy(onCreate: (m) async => m.createAll(),
-      onUpgrade: ((m, from, to) async {
-        if (from < 2) {
-          await customStatement(
+  MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (m) async => m.createAll(),
+    onUpgrade: ((m, from, to) async {
+      if (from < 2) {
+        await customStatement(
           'alter table cleans drop constraint cleans_room_fkey',
-          );
-          await customStatement(
-            'alter table cleans add column room_name text',
-          );
-          await customStatement(
-            'update cleans as c set room_name = r.name from rooms as r where c.room = r.id',
-          );
-          await customStatement(
-            'alter table cleans alter column room_name set not null',
-          );
-          await customStatement('alter table cleans drop column room');
-          await customStatement(
-            'alter table cleans rename column room_name to room',
-          );
-          await customStatement(
-            'alter table rooms drop constraint rooms_pkey',
-          );
-          await customStatement('alter table rooms drop column id');
-          await customStatement(
-            'alter table rooms add primary key (name)',
-          );
-          await customStatement(
-            'alter table cleans add constraint cleans_room_fkey foreign key (room) references rooms (name)',
-          );
-        }
-        if (from < 3) {
-          await customStatement(
-            'alter table issues add column if not exists resolved boolean not null default false',
-          );
-        }
-        if (from < 4) {
-          await customStatement(
-            'alter table cleans drop constraint if exists cleans_room_fkey',
-          );
-          await customStatement(
-            'alter table cleans add constraint cleans_room_fkey '
-            'foreign key (room) references rooms (name) on update cascade',
-          );
-        }
-        if (from < 5) {
-          await customStatement(
-            'alter table rooms add column if not exists building text',
-          );
-          await customStatement(
-            'alter table rooms add column if not exists floor text',
-          );
-        }
+        );
+        await customStatement('alter table cleans add column room_name text');
+        await customStatement(
+          'update cleans as c set room_name = r.name from rooms as r where c.room = r.id',
+        );
+        await customStatement(
+          'alter table cleans alter column room_name set not null',
+        );
+        await customStatement('alter table cleans drop column room');
+        await customStatement(
+          'alter table cleans rename column room_name to room',
+        );
+        await customStatement('alter table rooms drop constraint rooms_pkey');
+        await customStatement('alter table rooms drop column id');
+        await customStatement('alter table rooms add primary key (name)');
+        await customStatement(
+          'alter table cleans add constraint cleans_room_fkey foreign key (room) references rooms (name)',
+        );
       }
-    )
+      if (from < 3) {
+        await customStatement(
+          'alter table issues add column if not exists resolved boolean not null default false',
+        );
+      }
+      if (from < 4) {
+        await customStatement(
+          'alter table cleans drop constraint if exists cleans_room_fkey',
+        );
+        await customStatement(
+          'alter table cleans add constraint cleans_room_fkey '
+          'foreign key (room) references rooms (name) on update cascade',
+        );
+      }
+      if (from < 5) {
+        await customStatement(
+          'alter table rooms add column if not exists building text',
+        );
+        await customStatement(
+          'alter table rooms add column if not exists floor text',
+        );
+      }
+      if (from < 6) {
+        await customStatement(
+          'alter table rooms add column if not exists kml text',
+        );
+      }
+    }),
   );
 
   static QueryExecutor _open(Map<String, String> env) {
@@ -116,7 +114,8 @@ class Cleans extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get cleanedBy => integer().references(Users, #id)();
   IntColumn get auditedBy => integer().references(Users, #id).nullable()();
-  IntColumn get room => integer().references(Rooms, #name, onUpdate: KeyAction.cascade)();
+  IntColumn get room =>
+      integer().references(Rooms, #name, onUpdate: KeyAction.cascade)();
   BoolColumn get audited => boolean()();
   DateTimeColumn get auditTime => dateTime().nullable()();
   DateTimeColumn get cleanTime => dateTime()();
