@@ -9,7 +9,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(Map<String, String> env) : super(_open(env));
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration =>
@@ -45,6 +45,15 @@ class AppDatabase extends _$AppDatabase {
         }
         if (from < 3) {
           await m.addColumn(issues, issues.resolved);
+        }
+        if (from < 4) {
+          await customStatement(
+            'alter table cleans drop constraint cleans_room_fkey',
+          );
+          await customStatement(
+            'alter table cleans add constraint cleans_room_fkey '
+            'foreign key (room) references rooms (name) on update cascade',
+          );
         }
       }
     )
@@ -95,7 +104,7 @@ class Cleans extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get cleanedBy => integer().references(Users, #id)();
   IntColumn get auditedBy => integer().references(Users, #id).nullable()();
-  IntColumn get room => integer().references(Rooms, #name)();
+  IntColumn get room => integer().references(Rooms, #name, onUpdate: KeyAction.cascade)();
   BoolColumn get audited => boolean()();
   DateTimeColumn get auditTime => dateTime().nullable()();
   DateTimeColumn get cleanTime => dateTime()();

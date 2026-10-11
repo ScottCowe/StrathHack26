@@ -675,7 +675,7 @@ class $CleansTable extends Cleans with TableInfo<$CleansTable, Clean> {
     type: DriftSqlType.int,
     requiredDuringInsert: true,
     defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES rooms (name)',
+      'REFERENCES rooms (name) ON UPDATE CASCADE',
     ),
   );
   static const VerificationMeta _auditedMeta = const VerificationMeta(
@@ -1563,6 +1563,16 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     cleans,
     issues,
   ];
+  @override
+  StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'rooms',
+        limitUpdateKind: UpdateKind.update,
+      ),
+      result: [TableUpdate('cleans', kind: UpdateKind.update)],
+    ),
+  ]);
 }
 
 typedef $$UsersTableCreateCompanionBuilder = UsersCompanion Function({
