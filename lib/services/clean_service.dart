@@ -70,10 +70,12 @@ class CleanService {
           })>> listIssues({bool includeCleaning = true}) async {
     final rows = await _sql.query(
       'select issues.id, cleans.room, issues.description, issues.tag, '
-      'issues.priority, issues.resolved, users.username as logged_by '
+      'issues.priority, issues.resolved, '
+      'coalesce(logger.username, cleaner.username) as logged_by '
       'from issues '
       'left join cleans on cleans.id = issues.clean_id '
-      'left join users on users.id = cleans.cleaned_by '
+      'left join users logger on logger.id = issues.logged_by '
+      'left join users cleaner on cleaner.id = cleans.cleaned_by '
       'where issues.resolved = false '
       '${includeCleaning ? '' : "and issues.tag <> 'cleaners' "}'
       'order by issues.id',
@@ -152,6 +154,7 @@ class CleanService {
 
   Future<void> logIssueForRoom({
     required String room,
+    required String username,
     required String? description,
     required String tag,
     required String priority,
@@ -165,6 +168,7 @@ class CleanService {
     }
     await logIssue(
       cleanId: (cleans.first['id'] as num).toInt(),
+      username: username,
       description: description,
       tag: tag,
       priority: priority,
@@ -173,13 +177,15 @@ class CleanService {
 
   Future<void> logIssue({
     required int cleanId,
+    required String username,
     required String? description,
     required String tag,
     required String priority,
-  }) {
-    return _sql.query(
-      'insert into issues (clean_id, description, tag, priority) values (\$1, \$2, \$3, \$4)',
-      [cleanId, description, tag, priority],
+  }) async {
+    final userId = await _userId(username);
+    await _sql.query(
+      'insert into issues (clean_id, description, tag, priority, logged_by) values (\$1, \$2, \$3, \$4, \$5)',
+      [cleanId, description, tag, priority, userId],
     );
   }
 }

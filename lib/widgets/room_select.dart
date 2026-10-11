@@ -233,9 +233,7 @@ class _RoomSelectState extends State<RoomSelect> {
           label: 'Floor',
           value: _floor,
           items: floors,
-          hint: _building == null
-              ? 'Select building'
-              : floors.isEmpty
+          hint: _building != null && floors.isEmpty
               ? 'No floors'
               : 'Select floor',
           onChanged: _building != null && floors.isNotEmpty ? _pickFloor : null,
@@ -245,11 +243,7 @@ class _RoomSelectState extends State<RoomSelect> {
           label: 'Room',
           value: selected,
           items: names,
-          hint: _floor == null
-              ? 'Select floor'
-              : names.isEmpty
-              ? 'No rooms'
-              : 'Select room',
+          hint: _floor != null && names.isEmpty ? 'No rooms' : 'Select room',
           onChanged: _floor != null && names.isNotEmpty
               ? widget.onChanged
               : null,
