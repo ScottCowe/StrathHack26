@@ -14,7 +14,10 @@ class RoomSelect extends StatefulWidget {
 }
 
 class _RoomSelectState extends State<RoomSelect> {
-  List<({String name, String? kml})> _rooms = [];
+  List<({String name, String? building, String? floor, String? kml})> _rooms =
+      [];
+  String? _building;
+  String? _floor;
   String? _error;
   var _loaded = false;
   var _finding = false;
@@ -28,13 +31,18 @@ class _RoomSelectState extends State<RoomSelect> {
   Future<void> _load() async {
     try {
       final rows = await SqlClient().query(
-        'select name, kml from rooms order by name',
+        'select name, building, floor, kml from rooms order by name',
       );
       if (!mounted) return;
       setState(() {
         _rooms = [
           for (final row in rows)
-            (name: row['name'] as String, kml: row['kml'] as String?),
+            (
+              name: row['name'] as String,
+              building: _text(row['building']),
+              floor: _text(row['floor']),
+              kml: row['kml'] as String?,
+            ),
         ];
         _error = null;
         _loaded = true;
@@ -49,13 +57,19 @@ class _RoomSelectState extends State<RoomSelect> {
     }
   }
 
+  List<({String name, String? building, String? floor, String? kml})>
+  _chosen() {
+    return [
+      for (final room in _rooms)
+        if ((_building == null || room.building == _building) &&
+            (_floor == null || room.floor == _floor))
+          room,
+    ];
+  }
+
   Future<void> _nearest({bool quiet = false}) async {
     if (_finding) return;
-    final outlined = [
-      for (final room in _rooms)
-        if (parseRoomPolygonKml(room.kml).length >= 3) room,
-    ];
-    if (outlined.isEmpty) {
+    if (!_outlined(_chosen())) {
       if (!quiet) _say('No rooms have an outline');
       return;
     }
@@ -78,21 +92,38 @@ class _RoomSelectState extends State<RoomSelect> {
         ),
       );
       if (!mounted) return;
-      final ranked = roomsByDistance((
-        lat: position.latitude,
-        lon: position.longitude,
-      ), _rooms);
-      final nearest = ranked.first.meters == null ? null : ranked.first;
-      setState(() {
-        _rooms = [
-          for (final room in ranked) (name: room.name, kml: room.kml),
-        ];
-      });
-      if (nearest == null) {
+      final chosen = _chosen();
+      if (!_outlined(chosen)) {
         if (!quiet) _say('No rooms have an outline');
         return;
       }
-      if (!quiet || widget.value == null) {
+      final ranked = roomsByDistance((
+        lat: position.latitude,
+        lon: position.longitude,
+      ), [
+        for (final room in chosen) (name: room.name, kml: room.kml),
+      ]);
+      final byName = {for (final room in _rooms) room.name: room};
+      final nearest = ranked.first.meters == null ? null : ranked.first;
+      final room = nearest == null ? null : byName[nearest.name];
+      final picked = {for (final entry in ranked) entry.name};
+      final fill = room != null && (!quiet || widget.value == null);
+      setState(() {
+        _rooms = [
+          for (final entry in ranked) byName[entry.name]!,
+          for (final existing in _rooms)
+            if (!picked.contains(existing.name)) existing,
+        ];
+        if (fill) {
+          _building ??= room.building;
+          _floor ??= room.floor;
+        }
+      });
+      if (nearest == null || room == null) {
+        if (!quiet) _say('No rooms have an outline');
+        return;
+      }
+      if (fill) {
         widget.onChanged(nearest.name);
         final distance = nearest.meters!.round();
         _say(
@@ -108,6 +139,19 @@ class _RoomSelectState extends State<RoomSelect> {
     }
   }
 
+  void _pickBuilding(String? building) {
+    setState(() {
+      _building = building;
+      _floor = null;
+    });
+    widget.onChanged(null);
+  }
+
+  void _pickFloor(String? floor) {
+    setState(() => _floor = floor);
+    widget.onChanged(null);
+  }
+
   void _say(String message) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(message)));
@@ -115,31 +159,59 @@ class _RoomSelectState extends State<RoomSelect> {
 
   @override
   Widget build(BuildContext context) {
-    final names = [for (final room in _rooms) room.name];
+    final buildings = {
+      for (final room in _rooms)
+        if (room.building != null) room.building!,
+    }.toList()..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    final floors = {
+      for (final room in _rooms)
+        if (room.building == _building && room.floor != null) room.floor!,
+    }.toList()..sort(compareFloors);
+    final names = [
+      for (final room in _rooms)
+        if (room.building == _building && room.floor == _floor) room.name,
+    ];
     final selected = names.contains(widget.value) ? widget.value : null;
-    final hint = !_loaded
-        ? 'Loading rooms'
-        : _rooms.isEmpty
-        ? 'No rooms'
-        : 'Select room';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        DropdownButtonFormField<String>(
-          key: ValueKey(selected),
-          initialValue: selected,
-          isExpanded: true,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            labelText: 'Room',
-          ),
-          hint: Text(hint),
-          items: [
-            for (final name in names)
-              DropdownMenuItem(value: name, child: Text(name)),
-          ],
-          onChanged: _loaded && names.isNotEmpty ? widget.onChanged : null,
+        _menu(
+          label: 'Building',
+          value: _building,
+          items: buildings,
+          hint: !_loaded
+              ? 'Loading rooms'
+              : buildings.isEmpty
+              ? 'No buildings'
+              : 'Select building',
+          onChanged: _loaded && buildings.isNotEmpty ? _pickBuilding : null,
+        ),
+        const SizedBox(height: 12),
+        _menu(
+          label: 'Floor',
+          value: _floor,
+          items: floors,
+          hint: _building == null
+              ? 'Select building'
+              : floors.isEmpty
+              ? 'No floors'
+              : 'Select floor',
+          onChanged: _building != null && floors.isNotEmpty ? _pickFloor : null,
+        ),
+        const SizedBox(height: 12),
+        _menu(
+          label: 'Room',
+          value: selected,
+          items: names,
+          hint: _floor == null
+              ? 'Select floor'
+              : names.isEmpty
+              ? 'No rooms'
+              : 'Select room',
+          onChanged: _floor != null && names.isNotEmpty
+              ? widget.onChanged
+              : null,
         ),
         const SizedBox(height: 8),
         OutlinedButton(
@@ -157,4 +229,51 @@ class _RoomSelectState extends State<RoomSelect> {
       ],
     );
   }
+
+  Widget _menu({
+    required String label,
+    required String? value,
+    required List<String> items,
+    required String hint,
+    required ValueChanged<String?>? onChanged,
+  }) {
+    final selected = items.contains(value) ? value : null;
+    return DropdownButtonFormField<String>(
+      key: ValueKey('$label:$selected'),
+      initialValue: selected,
+      isExpanded: true,
+      decoration: InputDecoration(
+        border: const OutlineInputBorder(),
+        labelText: label,
+      ),
+      hint: Text(hint),
+      items: [
+        for (final item in items)
+          DropdownMenuItem(value: item, child: Text(item)),
+      ],
+      onChanged: onChanged,
+    );
+  }
+}
+
+bool _outlined(
+  List<({String name, String? building, String? floor, String? kml})> rooms,
+) {
+  for (final room in rooms) {
+    if (parseRoomPolygonKml(room.kml).length >= 3) return true;
+  }
+  return false;
+}
+
+String? _text(Object? value) {
+  if (value is! String) return null;
+  final text = value.trim();
+  return text.isEmpty ? null : text;
+}
+
+int compareFloors(String a, String b) {
+  final left = int.tryParse(a);
+  final right = int.tryParse(b);
+  if (left != null && right != null) return left.compareTo(right);
+  return a.toLowerCase().compareTo(b.toLowerCase());
 }
