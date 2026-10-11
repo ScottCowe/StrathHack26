@@ -99,11 +99,12 @@ class CleanService {
     String? description,
     required String tag,
     required String priority,
+    required String? image,
     required bool resolved,
   }) {
     return _sql.query(
-      'update issues set description = \$1, tag = \$2, priority = \$3, resolved = \$4 where id = \$5',
-      [description, tag, priority, resolved, id],
+      'update issues set description = \$1, tag = \$2, priority = \$3, image = \$4, resolved = \$5 where id = \$5',
+      [description, tag, priority, image, resolved, id],
     );
   }
 

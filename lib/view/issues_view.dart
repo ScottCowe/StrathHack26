@@ -114,6 +114,7 @@ class _IssuesViewState extends State<IssuesView> {
           description: result.description.isEmpty ? null : result.description,
           tag: result.tag,
           priority: result.priority,
+          image: issue.image,
           resolved: result.resolved,
         );
       }
