@@ -10,7 +10,7 @@ import 'package:strathclean/services/clean_service.dart';
 import 'package:strathclean/services/room_service.dart';
 import 'package:strathclean/services/sql_client.dart';
 import 'package:strathclean/view/add_room_view.dart';
-import 'package:strathclean/view/home_view.dart';
+import 'package:strathclean/view/rooms_view.dart';
 
 void main() {
   testWidgets('Home screen shows app title', (WidgetTester tester) async {
@@ -34,9 +34,10 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        home: HomeView(
+        home: RoomsView(
+          roomService: RoomService(SqlClient()),
+          canEdit: true,
           user: user,
-          cleanService: CleanService(SqlClient()),
         ),
         routes: {
           '/add-room': (context) => AddRoomView(
@@ -47,7 +48,8 @@ void main() {
     );
 
     await tester.tap(find.text('Add new room'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
 
     expect(find.text('Room name'), findsOneWidget);
     expect(find.text('Building'), findsOneWidget);

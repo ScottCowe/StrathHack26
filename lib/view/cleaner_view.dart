@@ -43,7 +43,7 @@ class _CleanerViewState extends State<CleanerView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Cleaner'),
-        backgroundColor: Colors.blue,
+        backgroundColor: const Color.fromARGB(255, 19, 8, 68),
         foregroundColor: Colors.white,
       ),
       body: user == null
