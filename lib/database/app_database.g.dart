@@ -345,6 +345,26 @@ class $RoomsTable extends Rooms with TableInfo<$RoomsTable, Room> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _buildingMeta = const VerificationMeta(
+    'building',
+  );
+  @override
+  late final GeneratedColumn<String> building = GeneratedColumn<String>(
+    'building',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _floorMeta = const VerificationMeta('floor');
+  @override
+  late final GeneratedColumn<String> floor = GeneratedColumn<String>(
+    'floor',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _kmlMeta = const VerificationMeta('kml');
   @override
   late final GeneratedColumn<String> kml = GeneratedColumn<String>(
@@ -355,7 +375,14 @@ class $RoomsTable extends Rooms with TableInfo<$RoomsTable, Room> {
     requiredDuringInsert: false,
   );
   @override
-  List<GeneratedColumn> get $columns => [name, lastCleaned, notes, kml];
+  List<GeneratedColumn> get $columns => [
+    name,
+    lastCleaned,
+    notes,
+    building,
+    floor,
+    kml,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -391,6 +418,18 @@ class $RoomsTable extends Rooms with TableInfo<$RoomsTable, Room> {
         notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
       );
     }
+    if (data.containsKey('building')) {
+      context.handle(
+        _buildingMeta,
+        building.isAcceptableOrUnknown(data['building']!, _buildingMeta),
+      );
+    }
+    if (data.containsKey('floor')) {
+      context.handle(
+        _floorMeta,
+        floor.isAcceptableOrUnknown(data['floor']!, _floorMeta),
+      );
+    }
     if (data.containsKey('kml')) {
       context.handle(
         _kmlMeta,
@@ -418,6 +457,14 @@ class $RoomsTable extends Rooms with TableInfo<$RoomsTable, Room> {
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
       ),
+      building: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}building'],
+      ),
+      floor: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}floor'],
+      ),
       kml: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}kml'],
@@ -435,8 +482,17 @@ class Room extends DataClass implements Insertable<Room> {
   final String name;
   final DateTime? lastCleaned;
   final String? notes;
+  final String? building;
+  final String? floor;
   final String? kml;
-  const Room({required this.name, this.lastCleaned, this.notes, this.kml});
+  const Room({
+    required this.name,
+    this.lastCleaned,
+    this.notes,
+    this.building,
+    this.floor,
+    this.kml,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -446,6 +502,12 @@ class Room extends DataClass implements Insertable<Room> {
     }
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
+    }
+    if (!nullToAbsent || building != null) {
+      map['building'] = Variable<String>(building);
+    }
+    if (!nullToAbsent || floor != null) {
+      map['floor'] = Variable<String>(floor);
     }
     if (!nullToAbsent || kml != null) {
       map['kml'] = Variable<String>(kml);
@@ -462,6 +524,12 @@ class Room extends DataClass implements Insertable<Room> {
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
+      building: building == null && nullToAbsent
+          ? const Value.absent()
+          : Value(building),
+      floor: floor == null && nullToAbsent
+          ? const Value.absent()
+          : Value(floor),
       kml: kml == null && nullToAbsent ? const Value.absent() : Value(kml),
     );
   }
@@ -475,6 +543,8 @@ class Room extends DataClass implements Insertable<Room> {
       name: serializer.fromJson<String>(json['name']),
       lastCleaned: serializer.fromJson<DateTime?>(json['lastCleaned']),
       notes: serializer.fromJson<String?>(json['notes']),
+      building: serializer.fromJson<String?>(json['building']),
+      floor: serializer.fromJson<String?>(json['floor']),
       kml: serializer.fromJson<String?>(json['kml']),
     );
   }
@@ -485,6 +555,8 @@ class Room extends DataClass implements Insertable<Room> {
       'name': serializer.toJson<String>(name),
       'lastCleaned': serializer.toJson<DateTime?>(lastCleaned),
       'notes': serializer.toJson<String?>(notes),
+      'building': serializer.toJson<String?>(building),
+      'floor': serializer.toJson<String?>(floor),
       'kml': serializer.toJson<String?>(kml),
     };
   }
@@ -493,11 +565,15 @@ class Room extends DataClass implements Insertable<Room> {
     String? name,
     Value<DateTime?> lastCleaned = const Value.absent(),
     Value<String?> notes = const Value.absent(),
+    Value<String?> building = const Value.absent(),
+    Value<String?> floor = const Value.absent(),
     Value<String?> kml = const Value.absent(),
   }) => Room(
     name: name ?? this.name,
     lastCleaned: lastCleaned.present ? lastCleaned.value : this.lastCleaned,
     notes: notes.present ? notes.value : this.notes,
+    building: building.present ? building.value : this.building,
+    floor: floor.present ? floor.value : this.floor,
     kml: kml.present ? kml.value : this.kml,
   );
   Room copyWithCompanion(RoomsCompanion data) {
@@ -507,6 +583,8 @@ class Room extends DataClass implements Insertable<Room> {
           ? data.lastCleaned.value
           : this.lastCleaned,
       notes: data.notes.present ? data.notes.value : this.notes,
+      building: data.building.present ? data.building.value : this.building,
+      floor: data.floor.present ? data.floor.value : this.floor,
       kml: data.kml.present ? data.kml.value : this.kml,
     );
   }
@@ -517,13 +595,16 @@ class Room extends DataClass implements Insertable<Room> {
           ..write('name: $name, ')
           ..write('lastCleaned: $lastCleaned, ')
           ..write('notes: $notes, ')
+          ..write('building: $building, ')
+          ..write('floor: $floor, ')
           ..write('kml: $kml')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(name, lastCleaned, notes, kml);
+  int get hashCode =>
+      Object.hash(name, lastCleaned, notes, building, floor, kml);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -531,6 +612,8 @@ class Room extends DataClass implements Insertable<Room> {
           other.name == this.name &&
           other.lastCleaned == this.lastCleaned &&
           other.notes == this.notes &&
+          other.building == this.building &&
+          other.floor == this.floor &&
           other.kml == this.kml);
 }
 
@@ -538,12 +621,16 @@ class RoomsCompanion extends UpdateCompanion<Room> {
   final Value<String> name;
   final Value<DateTime?> lastCleaned;
   final Value<String?> notes;
+  final Value<String?> building;
+  final Value<String?> floor;
   final Value<String?> kml;
   final Value<int> rowid;
   const RoomsCompanion({
     this.name = const Value.absent(),
     this.lastCleaned = const Value.absent(),
     this.notes = const Value.absent(),
+    this.building = const Value.absent(),
+    this.floor = const Value.absent(),
     this.kml = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -551,6 +638,8 @@ class RoomsCompanion extends UpdateCompanion<Room> {
     required String name,
     this.lastCleaned = const Value.absent(),
     this.notes = const Value.absent(),
+    this.building = const Value.absent(),
+    this.floor = const Value.absent(),
     this.kml = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : name = Value(name);
@@ -558,6 +647,8 @@ class RoomsCompanion extends UpdateCompanion<Room> {
     Expression<String>? name,
     Expression<DateTime>? lastCleaned,
     Expression<String>? notes,
+    Expression<String>? building,
+    Expression<String>? floor,
     Expression<String>? kml,
     Expression<int>? rowid,
   }) {
@@ -565,6 +656,8 @@ class RoomsCompanion extends UpdateCompanion<Room> {
       if (name != null) 'name': name,
       if (lastCleaned != null) 'last_cleaned': lastCleaned,
       if (notes != null) 'notes': notes,
+      if (building != null) 'building': building,
+      if (floor != null) 'floor': floor,
       if (kml != null) 'kml': kml,
       if (rowid != null) 'rowid': rowid,
     });
@@ -574,6 +667,8 @@ class RoomsCompanion extends UpdateCompanion<Room> {
     Value<String>? name,
     Value<DateTime?>? lastCleaned,
     Value<String?>? notes,
+    Value<String?>? building,
+    Value<String?>? floor,
     Value<String?>? kml,
     Value<int>? rowid,
   }) {
@@ -581,6 +676,8 @@ class RoomsCompanion extends UpdateCompanion<Room> {
       name: name ?? this.name,
       lastCleaned: lastCleaned ?? this.lastCleaned,
       notes: notes ?? this.notes,
+      building: building ?? this.building,
+      floor: floor ?? this.floor,
       kml: kml ?? this.kml,
       rowid: rowid ?? this.rowid,
     );
@@ -598,6 +695,12 @@ class RoomsCompanion extends UpdateCompanion<Room> {
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
+    if (building.present) {
+      map['building'] = Variable<String>(building.value);
+    }
+    if (floor.present) {
+      map['floor'] = Variable<String>(floor.value);
+    }
     if (kml.present) {
       map['kml'] = Variable<String>(kml.value);
     }
@@ -613,6 +716,8 @@ class RoomsCompanion extends UpdateCompanion<Room> {
           ..write('name: $name, ')
           ..write('lastCleaned: $lastCleaned, ')
           ..write('notes: $notes, ')
+          ..write('building: $building, ')
+          ..write('floor: $floor, ')
           ..write('kml: $kml, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -1757,6 +1862,8 @@ typedef $$RoomsTableCreateCompanionBuilder = RoomsCompanion Function({
   required String name,
   Value<DateTime?> lastCleaned,
   Value<String?> notes,
+  Value<String?> building,
+  Value<String?> floor,
   Value<String?> kml,
   Value<int> rowid,
 });
@@ -1764,6 +1871,8 @@ typedef $$RoomsTableUpdateCompanionBuilder = RoomsCompanion Function({
   Value<String> name,
   Value<DateTime?> lastCleaned,
   Value<String?> notes,
+  Value<String?> building,
+  Value<String?> floor,
   Value<String?> kml,
   Value<int> rowid,
 });
@@ -1788,6 +1897,16 @@ class $$RoomsTableFilterComposer extends Composer<_$AppDatabase, $RoomsTable> {
 
   ColumnFilters<String> get notes => $composableBuilder(
     column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get building => $composableBuilder(
+    column: $table.building,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get floor => $composableBuilder(
+    column: $table.floor,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1821,6 +1940,16 @@ class $$RoomsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get building => $composableBuilder(
+    column: $table.building,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get floor => $composableBuilder(
+    column: $table.floor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get kml => $composableBuilder(
     column: $table.kml,
     builder: (column) => ColumnOrderings(column),
@@ -1846,6 +1975,12 @@ class $$RoomsTableAnnotationComposer
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<String> get building =>
+      $composableBuilder(column: $table.building, builder: (column) => column);
+
+  GeneratedColumn<String> get floor =>
+      $composableBuilder(column: $table.floor, builder: (column) => column);
 
   GeneratedColumn<String> get kml =>
       $composableBuilder(column: $table.kml, builder: (column) => column);
@@ -1882,12 +2017,16 @@ class $$RoomsTableTableManager
                 Value<String> name = const Value.absent(),
                 Value<DateTime?> lastCleaned = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<String?> building = const Value.absent(),
+                Value<String?> floor = const Value.absent(),
                 Value<String?> kml = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => RoomsCompanion(
                 name: name,
                 lastCleaned: lastCleaned,
                 notes: notes,
+                building: building,
+                floor: floor,
                 kml: kml,
                 rowid: rowid,
               ),
@@ -1896,12 +2035,16 @@ class $$RoomsTableTableManager
                 required String name,
                 Value<DateTime?> lastCleaned = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<String?> building = const Value.absent(),
+                Value<String?> floor = const Value.absent(),
                 Value<String?> kml = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => RoomsCompanion.insert(
                 name: name,
                 lastCleaned: lastCleaned,
                 notes: notes,
+                building: building,
+                floor: floor,
                 kml: kml,
                 rowid: rowid,
               ),

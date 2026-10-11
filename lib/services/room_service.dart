@@ -5,13 +5,25 @@ class RoomService {
 
   final SqlClient _sql;
 
-  Future<List<({String name, String? notes, DateTime? cleanTime})>>
+  Future<
+    List<
+      ({
+        String name,
+        String? notes,
+        String? building,
+        String? floor,
+        String? kml,
+        DateTime? cleanTime,
+      })
+    >
+  >
   listRooms() async {
     final rows = await _sql.query(
-      'select rooms.name, rooms.notes, max(cleans.clean_time) as clean_time '
+      'select rooms.name, rooms.notes, rooms.building, rooms.floor, rooms.kml, '
+      'max(cleans.clean_time) as clean_time '
       'from rooms '
       'left join cleans on cleans.room = rooms.name '
-      'group by rooms.name, rooms.notes '
+      'group by rooms.name, rooms.notes, rooms.building, rooms.floor, rooms.kml '
       'order by rooms.name',
     );
     return [
@@ -19,11 +31,14 @@ class RoomService {
         (
           name: row['name'] as String,
           notes: row['notes'] as String?,
+          building: row['building'] as String?,
+          floor: row['floor'] as String?,
+          kml: row['kml'] as String?,
           cleanTime: switch (row['clean_time']) {
             final num millis => DateTime.fromMillisecondsSinceEpoch(
-                millis.toInt(),
-                isUtc: true,
-              ).toLocal(),
+              millis.toInt(),
+              isUtc: true,
+            ).toLocal(),
             _ => null,
           },
         ),
@@ -34,10 +49,14 @@ class RoomService {
     required String name,
     required String newName,
     String? notes,
+    String? building,
+    String? floor,
+    String? kml,
   }) {
     return _sql.query(
-      'update rooms set name = \$1, notes = \$2 where name = \$3',
-      [newName, notes, name],
+      'update rooms set name = \$1, notes = \$2, building = \$3, floor = \$4, '
+      'kml = \$5 where name = \$6',
+      [newName, notes, building, floor, kml, name],
     );
   }
 
@@ -45,10 +64,17 @@ class RoomService {
     return _sql.query('delete from rooms where name = \$1', [name]);
   }
 
-  Future<void> addRoom({required String name, String? notes}) {
+  Future<void> addRoom({
+    required String name,
+    String? notes,
+    String? building,
+    String? floor,
+    String? kml,
+  }) {
     return _sql.query(
-      'insert into rooms (name, notes) values (\$1, \$2)',
-      [name, notes],
+      'insert into rooms (name, notes, building, floor, kml) '
+      'values (\$1, \$2, \$3, \$4, \$5)',
+      [name, notes, building, floor, kml],
     );
   }
 }

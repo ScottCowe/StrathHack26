@@ -11,7 +11,10 @@ class LoginViewModel extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  Future<User?> submitLogin(String username, String password) async {
+  Future<({User? user, String? error})> submitLogin(
+    String username,
+    String password,
+  ) async {
     _isLoading = true;
     notifyListeners();
     try {

@@ -49,6 +49,17 @@ class FuzzySearchState extends State<FuzzySearch> {
       searchController.text = next;
       _suppress = false;
     }
+    if (focusNode.hasFocus && !_sameOrder(oldWidget.values, widget.values)) {
+      _search(searchController.text);
+    }
+  }
+
+  bool _sameOrder(List<String> a, List<String> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
   }
 
   @override

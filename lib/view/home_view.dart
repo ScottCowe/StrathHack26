@@ -13,8 +13,8 @@ class HomeView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Strath Clean'),
-        backgroundColor: Colors.blue,
+        title: const Text('Home'),
+        backgroundColor: const Color.fromARGB(255, 19, 8, 68),
         foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
         actions: [
@@ -42,6 +42,7 @@ class HomeView extends StatelessWidget {
           ),
           Expanded(
             child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -147,8 +148,14 @@ class _BeginAuditState extends State<_BeginAudit> {
   var _started = false;
   var _loading = false;
   String? _error;
-  List<({String room, String cleaner, DateTime cleanTime, String? issues})>
-  _rooms = [];
+  List<
+      ({
+        String room,
+        String cleaner,
+        DateTime cleanTime,
+        String? previousIssue,
+        String? unresolved,
+      })> _rooms = [];
 
   Future<void> _load() async {
     setState(() {
@@ -202,7 +209,8 @@ class _BeginAuditState extends State<_BeginAudit> {
                   '${room.room}\n'
                   'Cleaned by ${room.cleaner}\n'
                   'Last cleaned ${_when(room.cleanTime)}'
-                  '${room.issues == null || room.issues!.isEmpty ? '' : '\nIssues: ${room.issues}'}',
+                  '${room.unresolved == null || room.unresolved!.isEmpty ? '' : '\nCurrent issues: ${room.unresolved}'}'
+                  '${room.previousIssue == null || room.previousIssue!.isEmpty ? '' : '\nPrevious issue: ${room.previousIssue}'}',
                   textAlign: TextAlign.center,
                 ),
               ),

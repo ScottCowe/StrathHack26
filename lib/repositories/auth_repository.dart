@@ -7,7 +7,7 @@ class AuthRepository {
 
   final AuthService _authService;
 
-  Future<User?> login(String username, String password) {
+  Future<({User? user, String? error})> login(String username, String password) {
     return _authService.authenticate(username, password);
   }
 }

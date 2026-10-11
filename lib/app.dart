@@ -28,6 +28,13 @@ class StrathCleanApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData(
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size(double.infinity, 48),
+          ),
+        ),
+      ),
       initialRoute: '/login',
       routes: {
         '/login': (context) => LoginView(
@@ -85,7 +92,11 @@ class StrathCleanApp extends StatelessWidget {
               body: Center(child: Text('Managing rooms is for supervisors only')),
             );
           }
-          return RoomsView(roomService: roomService, canEdit: true);
+          return RoomsView(
+            roomService: roomService,
+            canEdit: true,
+            user: user,
+          );
         },
         '/issues': (context) => IssuesView(cleanService: cleanService),
         '/manage-issues': (context) {
