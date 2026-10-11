@@ -9,7 +9,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(Map<String, String> env) : super(_open(env));
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration =>
@@ -44,15 +44,25 @@ class AppDatabase extends _$AppDatabase {
           );
         }
         if (from < 3) {
-          await m.addColumn(issues, issues.resolved);
+          await customStatement(
+            'alter table issues add column if not exists resolved boolean not null default false',
+          );
         }
         if (from < 4) {
           await customStatement(
-            'alter table cleans drop constraint cleans_room_fkey',
+            'alter table cleans drop constraint if exists cleans_room_fkey',
           );
           await customStatement(
             'alter table cleans add constraint cleans_room_fkey '
             'foreign key (room) references rooms (name) on update cascade',
+          );
+        }
+        if (from < 5) {
+          await customStatement(
+            'alter table rooms add column if not exists building text',
+          );
+          await customStatement(
+            'alter table rooms add column if not exists floor text',
           );
         }
       }
@@ -94,6 +104,8 @@ class Rooms extends Table {
   TextColumn get name => text()();
   DateTimeColumn get lastCleaned => dateTime().nullable()();
   TextColumn get notes => text().nullable()();
+  TextColumn get building => text().nullable()();
+  TextColumn get floor => text().nullable()();
   TextColumn get kml => text().nullable()();
 
   @override

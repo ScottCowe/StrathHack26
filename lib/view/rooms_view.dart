@@ -17,7 +17,14 @@ class RoomsView extends StatefulWidget {
 }
 
 class _RoomsViewState extends State<RoomsView> {
-  List<({String name, String? notes, DateTime? cleanTime})> _rooms = [];
+  List<
+      ({
+        String name,
+        String? notes,
+        String? building,
+        String? floor,
+        DateTime? cleanTime,
+      })> _rooms = [];
   String? _error;
   var _loaded = false;
 
@@ -58,11 +65,29 @@ class _RoomsViewState extends State<RoomsView> {
   }
 
   Future<void> _edit(
-    ({String name, String? notes, DateTime? cleanTime}) room,
+    ({
+      String name,
+      String? notes,
+      String? building,
+      String? floor,
+      DateTime? cleanTime,
+    }) room,
   ) async {
-    final result = await showDialog<({bool delete, String name, String notes})>(
+    final result = await showDialog<
+        ({
+          bool delete,
+          String name,
+          String notes,
+          String building,
+          String floor,
+        })>(
       context: context,
-      builder: (context) => _EditRoomDialog(name: room.name, notes: room.notes),
+      builder: (context) => _EditRoomDialog(
+        name: room.name,
+        notes: room.notes,
+        building: room.building,
+        floor: room.floor,
+      ),
     );
     if (result == null || !mounted) return;
 
@@ -100,6 +125,8 @@ class _RoomsViewState extends State<RoomsView> {
           name: room.name,
           newName: result.name,
           notes: result.notes.isEmpty ? null : result.notes,
+          building: result.building.isEmpty ? null : result.building,
+          floor: result.floor.isEmpty ? null : result.floor,
         );
       }
       if (!mounted) return;
@@ -136,6 +163,8 @@ class _RoomsViewState extends State<RoomsView> {
         horizontalMargin: 16,
         columns: [
           const DataColumn(label: Text('Name')),
+          const DataColumn(label: Text('Building')),
+          const DataColumn(label: Text('Floor')),
           const DataColumn(label: Text('Last cleaned')),
           const DataColumn(label: Text('Notes')),
           if (widget.canEdit) const DataColumn(label: Text('')),
@@ -145,6 +174,8 @@ class _RoomsViewState extends State<RoomsView> {
             DataRow(
               cells: [
                 DataCell(Text(room.name)),
+                DataCell(Text(room.building ?? '')),
+                DataCell(Text(room.floor ?? '')),
                 DataCell(
                   Text(room.cleanTime == null ? '' : _when(room.cleanTime!)),
                 ),
@@ -165,10 +196,17 @@ class _RoomsViewState extends State<RoomsView> {
 }
 
 class _EditRoomDialog extends StatefulWidget {
-  const _EditRoomDialog({required this.name, required this.notes});
+  const _EditRoomDialog({
+    required this.name,
+    required this.notes,
+    required this.building,
+    required this.floor,
+  });
 
   final String name;
   final String? notes;
+  final String? building;
+  final String? floor;
 
   @override
   State<_EditRoomDialog> createState() => _EditRoomDialogState();
@@ -177,11 +215,15 @@ class _EditRoomDialog extends StatefulWidget {
 class _EditRoomDialogState extends State<_EditRoomDialog> {
   late final _name = TextEditingController(text: widget.name);
   late final _notes = TextEditingController(text: widget.notes ?? '');
+  late final _building = TextEditingController(text: widget.building ?? '');
+  late final _floor = TextEditingController(text: widget.floor ?? '');
 
   @override
   void dispose() {
     _name.dispose();
     _notes.dispose();
+    _building.dispose();
+    _floor.dispose();
     super.dispose();
   }
 
@@ -201,6 +243,22 @@ class _EditRoomDialogState extends State<_EditRoomDialog> {
           ),
           const SizedBox(height: 12),
           TextField(
+            controller: _building,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              labelText: 'Building',
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _floor,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              labelText: 'Floor',
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
             controller: _notes,
             decoration: const InputDecoration(
               border: OutlineInputBorder(),
@@ -215,7 +273,7 @@ class _EditRoomDialogState extends State<_EditRoomDialog> {
         TextButton(
           onPressed: () => Navigator.pop(
             context,
-            (delete: true, name: '', notes: ''),
+            (delete: true, name: '', notes: '', building: '', floor: ''),
           ),
           child: Text(
             'Delete',
@@ -229,6 +287,8 @@ class _EditRoomDialogState extends State<_EditRoomDialog> {
               delete: false,
               name: _name.text.trim(),
               notes: _notes.text.trim(),
+              building: _building.text.trim(),
+              floor: _floor.text.trim(),
             ),
           ),
           child: const Text('Save'),

@@ -13,12 +13,16 @@ class AddRoomView extends StatefulWidget {
 
 class _AddRoomViewState extends State<AddRoomView> {
   final _nameController = TextEditingController();
+  final _buildingController = TextEditingController();
+  final _floorController = TextEditingController();
   final _notesController = TextEditingController();
   var _saving = false;
 
   @override
   void dispose() {
     _nameController.dispose();
+    _buildingController.dispose();
+    _floorController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -34,11 +38,15 @@ class _AddRoomViewState extends State<AddRoomView> {
     }
 
     final notes = _notesController.text.trim();
+    final building = _buildingController.text.trim();
+    final floor = _floorController.text.trim();
     setState(() => _saving = true);
     try {
       await widget.roomService.addRoom(
         name: name,
         notes: notes.isEmpty ? null : notes,
+        building: building.isEmpty ? null : building,
+        floor: floor.isEmpty ? null : floor,
       );
       if (!mounted) return;
       Navigator.pop(context);
@@ -70,6 +78,22 @@ class _AddRoomViewState extends State<AddRoomView> {
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 labelText: 'Room name',
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _buildingController,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Building',
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _floorController,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Floor',
               ),
             ),
             const SizedBox(height: 12),
