@@ -1,3 +1,4 @@
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 
 import 'package:strathclean/models/roles.dart';
@@ -11,6 +12,7 @@ import 'package:strathclean/view/home_view.dart';
 import 'package:strathclean/view/issues_view.dart';
 import 'package:strathclean/view/login_view.dart';
 import 'package:strathclean/view/rooms_view.dart';
+import 'package:strathclean/view/take_image_view.dart';
 import 'package:strathclean/viewmodel/login_view_model.dart';
 
 class StrathCleanApp extends StatelessWidget {
@@ -24,6 +26,9 @@ class StrathCleanApp extends StatelessWidget {
   final AuthRepository authRepository;
   final RoomService roomService;
   final CleanService cleanService;
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -119,6 +124,9 @@ class StrathCleanApp extends StatelessWidget {
             );
           }
           return AddRoomView(roomService: roomService);
+        },
+        '/take-picture': (context) {
+            return TakePictureScreen();
         },
       },
     );

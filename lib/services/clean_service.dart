@@ -66,11 +66,12 @@ class CleanService {
             String tag,
             String priority,
             bool resolved,
+            String? image,
             String? loggedBy,
           })>> listIssues({bool includeCleaning = true}) async {
     final rows = await _sql.query(
       'select issues.id, cleans.room, issues.description, issues.tag, '
-      'issues.priority, issues.resolved, '
+      'issues.priority, issues.resolved, issues.image, '
       'coalesce(logger.username, cleaner.username) as logged_by '
       'from issues '
       'left join cleans on cleans.id = issues.clean_id '
@@ -89,6 +90,7 @@ class CleanService {
           tag: row['tag'] as String,
           priority: row['priority'] as String,
           resolved: row['resolved'] == true,
+          image: row['image'] as String?,
           loggedBy: row['logged_by'] as String?,
         ),
     ];
@@ -99,11 +101,12 @@ class CleanService {
     String? description,
     required String tag,
     required String priority,
+    required String? image,
     required bool resolved,
   }) {
     return _sql.query(
-      'update issues set description = \$1, tag = \$2, priority = \$3, resolved = \$4 where id = \$5',
-      [description, tag, priority, resolved, id],
+      'update issues set description = \$1, tag = \$2, priority = \$3, image = \$4, resolved = \$5 where id = \$5',
+      [description, tag, priority, image, resolved, id],
     );
   }
 
@@ -158,6 +161,7 @@ class CleanService {
     required String? description,
     required String tag,
     required String priority,
+    required String? image,
   }) async {
     final cleans = await _sql.query(
       'select id from cleans where room = \$1 order by clean_time desc limit 1',
@@ -172,6 +176,7 @@ class CleanService {
       description: description,
       tag: tag,
       priority: priority,
+      image: image
     );
   }
 
@@ -181,11 +186,12 @@ class CleanService {
     required String? description,
     required String tag,
     required String priority,
+    required String? image
   }) async {
     final userId = await _userId(username);
     await _sql.query(
-      'insert into issues (clean_id, description, tag, priority, logged_by) values (\$1, \$2, \$3, \$4, \$5)',
-      [cleanId, description, tag, priority, userId],
+      'insert into issues (clean_id, description, tag, priority, image, logged_by) values (\$1, \$2, \$3, \$4, \$5, \$6)',
+      [cleanId, description, tag, priority, image, userId],
     );
   }
 }

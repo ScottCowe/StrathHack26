@@ -1,4 +1,9 @@
+import 'dart:convert';
+import 'dart:developer';
+
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:strathclean/models/roles.dart';
 import 'package:strathclean/models/user.dart';
 import 'package:strathclean/services/clean_service.dart';
@@ -10,6 +15,7 @@ class AuditView extends StatefulWidget {
     this.title = 'Audit',
     this.logsClean = false,
     this.logsIssue = false,
+    this.imagePath = null,
     required this.user,
     required this.cleanService,
   });
@@ -19,6 +25,7 @@ class AuditView extends StatefulWidget {
   final bool logsIssue;
   final User user;
   final CleanService cleanService;
+  final String? imagePath;
 
   @override
   State<AuditView> createState() => _AuditViewState();
@@ -31,6 +38,7 @@ class _AuditViewState extends State<AuditView> {
   String? _priority;
   final _descriptionController = TextEditingController();
   var _saving = false;
+  String? imagePath = null;
 
   List<String> get _typeOptions => widget.user.role == Role.cleaner
       ? const ['external']
@@ -93,6 +101,7 @@ class _AuditViewState extends State<AuditView> {
           description: description,
           tag: issueTag!,
           priority: _priority!,
+          image: imagePath,
         );
       } else {
         final cleanId = widget.logsClean
@@ -111,6 +120,7 @@ class _AuditViewState extends State<AuditView> {
             description: description,
             tag: issueTag,
             priority: _priority!,
+            image: imagePath != null ? base64.encode(InputImage.fromFilePath(imagePath!).bytes as List<int>) : null,
           );
         }
       }
@@ -228,9 +238,22 @@ class _AuditViewState extends State<AuditView> {
             ],
             const SizedBox(height: 12),
             ElevatedButton(
+              onPressed: () async {
+                final String? ip = await Navigator.pushNamed(context, "/take-picture") as String?;
+                setState(() {
+                  imagePath = ip;
+                });
+              },
+              child: const Text('Take photo?'),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
               onPressed: _saving ? null : _submit,
               child: const Text('Submit'),
             ),
+          imagePath != null ?
+            Image.network(imagePath!)
+            : Text("No image."),
           ],
         ),
       ),

@@ -66,7 +66,7 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 7) {
         await customStatement(
-          'alter table issues add column if not exists logged_by bigint references users (id)',
+          "alter table issues alter column image type text; alter table issues add column if not exists logged_by bigint references users (id);",
         );
       }
     }),
@@ -133,7 +133,7 @@ enum Priority { low, medium, high }
 class Issues extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get cleanId => integer().references(Cleans, #id)();
-  BlobColumn get image => blob().nullable()();
+  TextColumn get image => text().nullable()();
   TextColumn get description => text().nullable()();
   TextColumn get tag => textEnum<TagName>()();
   //needs coords perhaps
