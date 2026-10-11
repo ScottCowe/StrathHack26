@@ -7,11 +7,13 @@ class AuditView extends StatefulWidget {
   const AuditView({
     super.key,
     this.title = 'Audit',
+    this.logsClean = false,
     required this.user,
     required this.cleanService,
   });
 
   final String title;
+  final bool logsClean;
   final User user;
   final CleanService cleanService;
 
@@ -49,16 +51,29 @@ class _AuditViewState extends State<AuditView> {
 
     setState(() => _saving = true);
     try {
-      await widget.cleanService.logClean(
-        username: widget.user.username,
-        room: room,
-      );
+      if (widget.logsClean) {
+        await widget.cleanService.logClean(
+          username: widget.user.username,
+          room: room,
+        );
+      } else {
+        await widget.cleanService.logAudit(
+          username: widget.user.username,
+          room: room,
+        );
+      }
       if (!mounted) return;
       Navigator.pop(context);
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not log clean: $error')),
+        SnackBar(
+          content: Text(
+            widget.logsClean
+                ? 'Could not log clean: $error'
+                : 'Could not save audit: $error',
+          ),
+        ),
       );
     } finally {
       if (mounted) setState(() => _saving = false);
