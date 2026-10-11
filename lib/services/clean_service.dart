@@ -155,6 +155,7 @@ class CleanService {
     required String? description,
     required String tag,
     required String priority,
+    required String? image,
   }) async {
     final cleans = await _sql.query(
       'select id from cleans where room = \$1 order by clean_time desc limit 1',
@@ -168,6 +169,7 @@ class CleanService {
       description: description,
       tag: tag,
       priority: priority,
+      image: image
     );
   }
 
@@ -176,10 +178,11 @@ class CleanService {
     required String? description,
     required String tag,
     required String priority,
+    required String? image
   }) {
     return _sql.query(
-      'insert into issues (clean_id, description, tag, priority) values (\$1, \$2, \$3, \$4)',
-      [cleanId, description, tag, priority],
+      'insert into issues (clean_id, description, tag, priority, image) values (\$1, \$2, \$3, \$4, \$5)',
+      [cleanId, description, tag, priority, image],
     );
   }
 }

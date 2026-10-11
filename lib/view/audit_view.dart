@@ -13,6 +13,7 @@ class AuditView extends StatefulWidget {
     this.title = 'Audit',
     this.logsClean = false,
     this.logsIssue = false,
+    this.imagePath = null,
     required this.user,
     required this.cleanService,
   });
@@ -22,6 +23,7 @@ class AuditView extends StatefulWidget {
   final bool logsIssue;
   final User user;
   final CleanService cleanService;
+  final String? imagePath;
 
   @override
   State<AuditView> createState() => _AuditViewState();
@@ -34,6 +36,7 @@ class _AuditViewState extends State<AuditView> {
   String? _priority;
   final _descriptionController = TextEditingController();
   var _saving = false;
+  String? imagePath = null;
 
   List<String> get _typeOptions => widget.user.role == Role.cleaner
       ? const ['external']
@@ -95,6 +98,7 @@ class _AuditViewState extends State<AuditView> {
           description: description,
           tag: issueTag!,
           priority: _priority!,
+          image: imagePath,
         );
       } else {
         final cleanId = widget.logsClean
@@ -112,6 +116,7 @@ class _AuditViewState extends State<AuditView> {
             description: description,
             tag: issueTag,
             priority: _priority!,
+            image: imagePath
           );
         }
       }
@@ -230,9 +235,10 @@ class _AuditViewState extends State<AuditView> {
             const SizedBox(height: 12),
             ElevatedButton(
               onPressed: () async {
-                final imagePath = await Navigator.pushNamedAndRemoveUntil(context, "/take-picture", (route) => false);
-                log("does logging work?");
-                log("$imagePath");
+                final String? ip = await Navigator.pushNamed(context, "/take-picture") as String?;
+                setState(() {
+                  imagePath = ip;
+                });
               },
               child: const Text('Take photo?'),
             ),
@@ -240,7 +246,10 @@ class _AuditViewState extends State<AuditView> {
             ElevatedButton(
               onPressed: _saving ? null : _submit,
               child: const Text('Submit'),
-            )
+            ),
+          imagePath != null ?
+            Image.network(imagePath!)
+            : Text("No image."),
           ],
         ),
       ),
