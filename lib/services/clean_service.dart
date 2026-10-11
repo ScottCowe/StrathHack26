@@ -60,10 +60,11 @@ class CleanService {
   Future<void> logIssue({
     required int cleanId,
     required String? description,
+    required String tag,
   }) {
     return _sql.query(
       'insert into issues (clean_id, description, tag, priority) values (\$1, \$2, \$3, \$4)',
-      [cleanId, description, 'cleaners', 'low'],
+      [cleanId, description, tag, 'low'],
     );
   }
 }

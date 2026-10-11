@@ -45,8 +45,12 @@ class _AuditViewState extends State<AuditView> {
       );
       return;
     }
-    final cleaningIssue = _type == 'cleaning';
-    if (_yesNo != true && !cleaningIssue) {
+    final issueTag = switch (_type) {
+      'cleaning' => 'cleaners',
+      'external' => 'external',
+      _ => null,
+    };
+    if (_yesNo != true && issueTag == null) {
       return;
     }
 
@@ -61,11 +65,12 @@ class _AuditViewState extends State<AuditView> {
               username: widget.user.username,
               room: room,
             );
-      if (cleaningIssue) {
+      if (issueTag != null) {
         final description = _descriptionController.text.trim();
         await widget.cleanService.logIssue(
           cleanId: cleanId,
           description: description.isEmpty ? null : description,
+          tag: issueTag,
         );
       }
       if (!mounted) return;
