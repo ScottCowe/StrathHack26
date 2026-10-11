@@ -45,21 +45,27 @@ class _AuditViewState extends State<AuditView> {
       );
       return;
     }
-    if (_yesNo != true) {
+    final cleaningIssue = _type == 'cleaning';
+    if (_yesNo != true && !cleaningIssue) {
       return;
     }
 
     setState(() => _saving = true);
     try {
-      if (widget.logsClean) {
-        await widget.cleanService.logClean(
-          username: widget.user.username,
-          room: room,
-        );
-      } else {
-        await widget.cleanService.logAudit(
-          username: widget.user.username,
-          room: room,
+      final cleanId = widget.logsClean
+          ? await widget.cleanService.logClean(
+              username: widget.user.username,
+              room: room,
+            )
+          : await widget.cleanService.logAudit(
+              username: widget.user.username,
+              room: room,
+            );
+      if (cleaningIssue) {
+        final description = _descriptionController.text.trim();
+        await widget.cleanService.logIssue(
+          cleanId: cleanId,
+          description: description.isEmpty ? null : description,
         );
       }
       if (!mounted) return;

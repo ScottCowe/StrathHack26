@@ -16,18 +16,27 @@ class CleanService {
     return (rows.first['id'] as num).toInt();
   }
 
-  Future<void> logClean({
+  Future<int> logClean({
     required String username,
     required String room,
   }) async {
     final userId = await _userId(username);
+    final now = DateTime.now().millisecondsSinceEpoch;
     await _sql.query(
       'insert into cleans (cleaned_by, room, audited, clean_time) values (\$1, \$2, false, \$3)',
-      [userId, room, DateTime.now().millisecondsSinceEpoch],
+      [userId, room, now],
     );
+    final rows = await _sql.query(
+      'select id from cleans where cleaned_by = \$1 and room = \$2 and clean_time = \$3 order by id desc limit 1',
+      [userId, room, now],
+    );
+    if (rows.isEmpty) {
+      throw StateError('Clean was not saved');
+    }
+    return (rows.first['id'] as num).toInt();
   }
 
-  Future<void> logAudit({
+  Future<int> logAudit({
     required String username,
     required String room,
   }) async {
@@ -44,6 +53,17 @@ class CleanService {
     await _sql.query(
       'update cleans set audited = true, audited_by = \$1, audit_time = \$2 where id = \$3',
       [userId, DateTime.now().millisecondsSinceEpoch, cleanId],
+    );
+    return cleanId;
+  }
+
+  Future<void> logIssue({
+    required int cleanId,
+    required String? description,
+  }) {
+    return _sql.query(
+      'insert into issues (clean_id, description, tag, priority) values (\$1, \$2, \$3, \$4)',
+      [cleanId, description, 'cleaners', 'low'],
     );
   }
 }
