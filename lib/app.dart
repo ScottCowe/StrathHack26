@@ -8,6 +8,7 @@ import 'package:strathclean/services/room_service.dart';
 import 'package:strathclean/view/add_room_view.dart';
 import 'package:strathclean/view/audit_view.dart';
 import 'package:strathclean/view/home_view.dart';
+import 'package:strathclean/view/issues_view.dart';
 import 'package:strathclean/view/login_view.dart';
 import 'package:strathclean/view/rooms_view.dart';
 import 'package:strathclean/viewmodel/login_view_model.dart';
@@ -73,6 +74,18 @@ class StrathCleanApp extends StatelessWidget {
             );
           }
           return RoomsView(roomService: roomService, canEdit: true);
+        },
+        '/issues': (context) => IssuesView(cleanService: cleanService),
+        '/manage-issues': (context) {
+          final user = ModalRoute.of(context)?.settings.arguments as User?;
+          if (user == null || user.role != Role.supervisor) {
+            return const Scaffold(
+              body: Center(
+                child: Text('Managing issues is for supervisors only'),
+              ),
+            );
+          }
+          return IssuesView(cleanService: cleanService, canEdit: true);
         },
         '/add-room': (context) {
           final user = ModalRoute.of(context)?.settings.arguments as User?;

@@ -57,6 +57,54 @@ class CleanService {
     return cleanId;
   }
 
+  Future<
+      List<
+          ({
+            int id,
+            String? room,
+            String? description,
+            String tag,
+            String priority,
+            bool resolved,
+          })>> listIssues() async {
+    final rows = await _sql.query(
+      'select issues.id, cleans.room, issues.description, issues.tag, '
+      'issues.priority, issues.resolved '
+      'from issues '
+      'left join cleans on cleans.id = issues.clean_id '
+      'where issues.resolved = false '
+      'order by issues.id',
+    );
+    return [
+      for (final row in rows)
+        (
+          id: (row['id'] as num).toInt(),
+          room: row['room'] as String?,
+          description: row['description'] as String?,
+          tag: row['tag'] as String,
+          priority: row['priority'] as String,
+          resolved: row['resolved'] == true,
+        ),
+    ];
+  }
+
+  Future<void> saveIssue({
+    required int id,
+    String? description,
+    required String tag,
+    required String priority,
+    required bool resolved,
+  }) {
+    return _sql.query(
+      'update issues set description = \$1, tag = \$2, priority = \$3, resolved = \$4 where id = \$5',
+      [description, tag, priority, resolved, id],
+    );
+  }
+
+  Future<void> deleteIssue(int id) {
+    return _sql.query('delete from issues where id = \$1', [id]);
+  }
+
   Future<void> logIssue({
     required int cleanId,
     required String? description,
