@@ -1,7 +1,6 @@
 // A screen that allows users to take a picture using the device's first camera.
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:strathclean/view/display_image_view.dart';
 
 class TakePictureScreen extends StatefulWidget {
   const TakePictureScreen({super.key});
@@ -64,13 +63,8 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 
             if (!context.mounted) return;
 
-            await Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (context) => DisplayPictureScreen(
-                  imagePath: image.path,
-                ),
-              ),
-            );
+            Navigator.pop(context, image.path);
+
           } catch (e) {
             print(e);
           }
