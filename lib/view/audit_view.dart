@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:strathclean/models/roles.dart';
 import 'package:strathclean/models/user.dart';
 import 'package:strathclean/services/clean_service.dart';
@@ -116,7 +118,7 @@ class _AuditViewState extends State<AuditView> {
             description: description,
             tag: issueTag,
             priority: _priority!,
-            image: imagePath
+            image: imagePath != null ? base64.encode(InputImage.fromFilePath(imagePath!).bytes as List<int>) : null,
           );
         }
       }

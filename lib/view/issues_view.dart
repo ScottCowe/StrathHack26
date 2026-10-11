@@ -9,6 +9,7 @@ typedef _Issue = ({
   String tag,
   String priority,
   bool resolved,
+  String? image,
   String? loggedBy,
 });
 
@@ -151,6 +152,8 @@ class _IssuesViewState extends State<IssuesView> {
                 const SizedBox(height: 8),
                 Text('${_tagLabel(issue.tag)} · ${_label(issue.priority)}'),
                 Text('Logged by ${issue.loggedBy ?? 'Unknown'}'),
+                if(issue.image != null)
+                  Image.network(issue.image ?? ""),
                 if (widget.canEdit)
                   Align(
                     alignment: Alignment.centerRight,
