@@ -39,7 +39,9 @@ class _IssuesViewState extends State<IssuesView> {
 
   Future<void> _load() async {
     try {
-      final issues = await widget.cleanService.listIssues();
+      final issues = await widget.cleanService.listIssues(
+        includeCleaning: widget.canEdit,
+      );
       if (!mounted) return;
       setState(() {
         _issues = issues;

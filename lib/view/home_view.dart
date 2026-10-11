@@ -91,13 +91,15 @@ class HomeView extends StatelessWidget {
                     ),
                   ],
                   if (user.role == Role.supervisor) ...[
+                    _BeginAudit(user: user, cleanService: cleanService),
+                    const SizedBox(height: 12),
                     ElevatedButton(
                       onPressed: () => Navigator.pushNamed(
                         context,
-                        '/manage-rooms',
+                        '/log-issue',
                         arguments: user,
                       ),
-                      child: const Text('Manage rooms'),
+                      child: const Text('Log issue'),
                     ),
                     const SizedBox(height: 12),
                     ElevatedButton(
@@ -112,13 +114,11 @@ class HomeView extends StatelessWidget {
                     ElevatedButton(
                       onPressed: () => Navigator.pushNamed(
                         context,
-                        '/log-issue',
+                        '/manage-rooms',
                         arguments: user,
                       ),
-                      child: const Text('Log issue'),
+                      child: const Text('Manage rooms'),
                     ),
-                    const SizedBox(height: 12),
-                    _BeginAudit(user: user, cleanService: cleanService),
                   ],
                 ],
                 ),
@@ -145,8 +145,14 @@ class _BeginAuditState extends State<_BeginAudit> {
   var _started = false;
   var _loading = false;
   String? _error;
-  List<({String room, String cleaner, DateTime cleanTime, String? issues})>
-      _rooms = [];
+  List<
+      ({
+        String room,
+        String cleaner,
+        DateTime cleanTime,
+        String? previousIssue,
+        String? unresolved,
+      })> _rooms = [];
 
   Future<void> _load() async {
     setState(() {
@@ -203,7 +209,8 @@ class _BeginAuditState extends State<_BeginAudit> {
                   '${room.room}\n'
                   'Cleaned by ${room.cleaner}\n'
                   'Last cleaned ${_when(room.cleanTime)}'
-                  '${room.issues == null || room.issues!.isEmpty ? '' : '\nIssues: ${room.issues}'}',
+                  '${room.unresolved == null || room.unresolved!.isEmpty ? '' : '\nCurrent issues: ${room.unresolved}'}'
+                  '${room.previousIssue == null || room.previousIssue!.isEmpty ? '' : '\nPrevious issue: ${room.previousIssue}'}',
                   textAlign: TextAlign.center,
                 ),
               ),

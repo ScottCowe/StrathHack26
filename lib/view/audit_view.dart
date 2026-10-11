@@ -28,6 +28,7 @@ class _AuditViewState extends State<AuditView> {
   String? _roomName;
   bool? _yesNo = false;
   String? _type;
+  String? _priority;
   final _descriptionController = TextEditingController();
   var _saving = false;
 
@@ -69,9 +70,16 @@ class _AuditViewState extends State<AuditView> {
       return;
     }
     final description = _descriptionController.text.trim();
-    if ((widget.logsIssue || issueTag != null) && description.isEmpty) {
+    final savingIssue = widget.logsIssue || issueTag != null;
+    if (savingIssue && description.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Enter a description')),
+      );
+      return;
+    }
+    if (savingIssue && _priority == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Select a priority')),
       );
       return;
     }
@@ -83,6 +91,7 @@ class _AuditViewState extends State<AuditView> {
           room: room,
           description: description,
           tag: issueTag!,
+          priority: _priority!,
         );
       } else {
         final cleanId = widget.logsClean
@@ -99,6 +108,7 @@ class _AuditViewState extends State<AuditView> {
             cleanId: cleanId,
             description: description,
             tag: issueTag,
+            priority: _priority!,
           );
         }
       }
@@ -127,6 +137,7 @@ class _AuditViewState extends State<AuditView> {
       _yesNo = value;
       if (value != true) {
         _type = null;
+        _priority = null;
         _descriptionController.clear();
       } else if (widget.user.role == Role.cleaner) {
         _type = 'external';
@@ -186,6 +197,21 @@ class _AuditViewState extends State<AuditView> {
                     )
                     .toList(),
                 onChanged: (value) => setState(() => _type = value),
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                initialValue: _priority,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Priority',
+                ),
+                hint: const Text('Select priority'),
+                items: const [
+                  DropdownMenuItem(value: 'low', child: Text('Low')),
+                  DropdownMenuItem(value: 'medium', child: Text('Medium')),
+                  DropdownMenuItem(value: 'high', child: Text('High')),
+                ],
+                onChanged: (value) => setState(() => _priority = value),
               ),
               const SizedBox(height: 12),
               TextFormField(
