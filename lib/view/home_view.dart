@@ -85,13 +85,15 @@ class HomeView extends StatelessWidget {
                       ),
                     ],
                     if (user.role == Role.supervisor) ...[
+                      _BeginAudit(user: user, cleanService: cleanService),
+                      const SizedBox(height: 12),
                       ElevatedButton(
                         onPressed: () => Navigator.pushNamed(
                           context,
-                          '/manage-rooms',
+                          '/log-issue',
                           arguments: user,
                         ),
-                        child: const Text('Manage rooms'),
+                        child: const Text('Log issue'),
                       ),
                       const SizedBox(height: 12),
                       ElevatedButton(
@@ -106,21 +108,10 @@ class HomeView extends StatelessWidget {
                       ElevatedButton(
                         onPressed: () => Navigator.pushNamed(
                           context,
-                          '/log-issue',
+                          '/manage-rooms',
                           arguments: user,
                         ),
-                        child: const Text('Log issue'),
-                      ),
-                      const SizedBox(height: 12),
-                      _BeginAudit(user: user, cleanService: cleanService),
-                      const SizedBox(height: 12),
-                      ElevatedButton(
-                        onPressed: () => Navigator.pushNamed(
-                          context,
-                          '/add-room',
-                          arguments: user,
-                        ),
-                        child: const Text('Add new room'),
+                        child: const Text('Manage rooms'),
                       ),
                     ],
                   ],
