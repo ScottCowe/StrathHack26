@@ -222,7 +222,6 @@ class _RoomsViewState extends State<RoomsView> {
                       ? 'Not cleaned yet'
                       : 'Last cleaned ${_when(room.cleanTime!)}',
                 ),
-                DataCell(Text(room.notes == null ? '' : room.notes!)),
                 if (room.notes != null && room.notes!.isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Text(room.notes!),
