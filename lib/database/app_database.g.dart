@@ -1221,11 +1221,11 @@ class $IssuesTable extends Issues with TableInfo<$IssuesTable, Issue> {
   );
   static const VerificationMeta _imageMeta = const VerificationMeta('image');
   @override
-  late final GeneratedColumn<Uint8List> image = GeneratedColumn<Uint8List>(
+  late final GeneratedColumn<String> image = GeneratedColumn<String>(
     'image',
     aliasedName,
     true,
-    type: DriftSqlType.blob,
+    type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
   static const VerificationMeta _descriptionMeta = const VerificationMeta(
@@ -1341,7 +1341,7 @@ class $IssuesTable extends Issues with TableInfo<$IssuesTable, Issue> {
         data['${effectivePrefix}clean_id'],
       )!,
       image: attachedDatabase.typeMapping.read(
-        DriftSqlType.blob,
+        DriftSqlType.string,
         data['${effectivePrefix}image'],
       ),
       description: attachedDatabase.typeMapping.read(
@@ -1381,7 +1381,7 @@ class $IssuesTable extends Issues with TableInfo<$IssuesTable, Issue> {
 class Issue extends DataClass implements Insertable<Issue> {
   final int id;
   final int cleanId;
-  final Uint8List? image;
+  final String? image;
   final String? description;
   final TagName tag;
   final Priority priority;
@@ -1401,7 +1401,7 @@ class Issue extends DataClass implements Insertable<Issue> {
     map['id'] = Variable<int>(id);
     map['clean_id'] = Variable<int>(cleanId);
     if (!nullToAbsent || image != null) {
-      map['image'] = Variable<Uint8List>(image);
+      map['image'] = Variable<String>(image);
     }
     if (!nullToAbsent || description != null) {
       map['description'] = Variable<String>(description);
@@ -1442,7 +1442,7 @@ class Issue extends DataClass implements Insertable<Issue> {
     return Issue(
       id: serializer.fromJson<int>(json['id']),
       cleanId: serializer.fromJson<int>(json['cleanId']),
-      image: serializer.fromJson<Uint8List?>(json['image']),
+      image: serializer.fromJson<String?>(json['image']),
       description: serializer.fromJson<String?>(json['description']),
       tag: $IssuesTable.$convertertag.fromJson(
         serializer.fromJson<String>(json['tag']),
@@ -1459,7 +1459,7 @@ class Issue extends DataClass implements Insertable<Issue> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'cleanId': serializer.toJson<int>(cleanId),
-      'image': serializer.toJson<Uint8List?>(image),
+      'image': serializer.toJson<String?>(image),
       'description': serializer.toJson<String?>(description),
       'tag': serializer.toJson<String>($IssuesTable.$convertertag.toJson(tag)),
       'priority': serializer.toJson<String>(
@@ -1472,7 +1472,7 @@ class Issue extends DataClass implements Insertable<Issue> {
   Issue copyWith({
     int? id,
     int? cleanId,
-    Value<Uint8List?> image = const Value.absent(),
+    Value<String?> image = const Value.absent(),
     Value<String?> description = const Value.absent(),
     TagName? tag,
     Priority? priority,
@@ -1515,22 +1515,15 @@ class Issue extends DataClass implements Insertable<Issue> {
   }
 
   @override
-  int get hashCode => Object.hash(
-    id,
-    cleanId,
-    $driftBlobEquality.hash(image),
-    description,
-    tag,
-    priority,
-    resolved,
-  );
+  int get hashCode =>
+      Object.hash(id, cleanId, image, description, tag, priority, resolved);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Issue &&
           other.id == this.id &&
           other.cleanId == this.cleanId &&
-          $driftBlobEquality.equals(other.image, this.image) &&
+          other.image == this.image &&
           other.description == this.description &&
           other.tag == this.tag &&
           other.priority == this.priority &&
@@ -1540,7 +1533,7 @@ class Issue extends DataClass implements Insertable<Issue> {
 class IssuesCompanion extends UpdateCompanion<Issue> {
   final Value<int> id;
   final Value<int> cleanId;
-  final Value<Uint8List?> image;
+  final Value<String?> image;
   final Value<String?> description;
   final Value<TagName> tag;
   final Value<Priority> priority;
@@ -1568,7 +1561,7 @@ class IssuesCompanion extends UpdateCompanion<Issue> {
   static Insertable<Issue> custom({
     Expression<int>? id,
     Expression<int>? cleanId,
-    Expression<Uint8List>? image,
+    Expression<String>? image,
     Expression<String>? description,
     Expression<String>? tag,
     Expression<String>? priority,
@@ -1588,7 +1581,7 @@ class IssuesCompanion extends UpdateCompanion<Issue> {
   IssuesCompanion copyWith({
     Value<int>? id,
     Value<int>? cleanId,
-    Value<Uint8List?>? image,
+    Value<String?>? image,
     Value<String?>? description,
     Value<TagName>? tag,
     Value<Priority>? priority,
@@ -1615,7 +1608,7 @@ class IssuesCompanion extends UpdateCompanion<Issue> {
       map['clean_id'] = Variable<int>(cleanId.value);
     }
     if (image.present) {
-      map['image'] = Variable<Uint8List>(image.value);
+      map['image'] = Variable<String>(image.value);
     }
     if (description.present) {
       map['description'] = Variable<String>(description.value);
@@ -2586,7 +2579,7 @@ typedef $$CleansTableProcessedTableManager =
 typedef $$IssuesTableCreateCompanionBuilder = IssuesCompanion Function({
   Value<int> id,
   required int cleanId,
-  Value<Uint8List?> image,
+  Value<String?> image,
   Value<String?> description,
   required TagName tag,
   required Priority priority,
@@ -2595,7 +2588,7 @@ typedef $$IssuesTableCreateCompanionBuilder = IssuesCompanion Function({
 typedef $$IssuesTableUpdateCompanionBuilder = IssuesCompanion Function({
   Value<int> id,
   Value<int> cleanId,
-  Value<Uint8List?> image,
+  Value<String?> image,
   Value<String?> description,
   Value<TagName> tag,
   Value<Priority> priority,
@@ -2638,7 +2631,7 @@ class $$IssuesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<Uint8List> get image => $composableBuilder(
+  ColumnFilters<String> get image => $composableBuilder(
     column: $table.image,
     builder: (column) => ColumnFilters(column),
   );
@@ -2703,7 +2696,7 @@ class $$IssuesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<Uint8List> get image => $composableBuilder(
+  ColumnOrderings<String> get image => $composableBuilder(
     column: $table.image,
     builder: (column) => ColumnOrderings(column),
   );
@@ -2764,7 +2757,7 @@ class $$IssuesTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<Uint8List> get image =>
+  GeneratedColumn<String> get image =>
       $composableBuilder(column: $table.image, builder: (column) => column);
 
   GeneratedColumn<String> get description => $composableBuilder(
@@ -2835,7 +2828,7 @@ class $$IssuesTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<int> cleanId = const Value.absent(),
-                Value<Uint8List?> image = const Value.absent(),
+                Value<String?> image = const Value.absent(),
                 Value<String?> description = const Value.absent(),
                 Value<TagName> tag = const Value.absent(),
                 Value<Priority> priority = const Value.absent(),
@@ -2853,7 +2846,7 @@ class $$IssuesTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 required int cleanId,
-                Value<Uint8List?> image = const Value.absent(),
+                Value<String?> image = const Value.absent(),
                 Value<String?> description = const Value.absent(),
                 required TagName tag,
                 required Priority priority,

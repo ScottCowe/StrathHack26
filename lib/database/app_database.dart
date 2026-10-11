@@ -9,7 +9,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(Map<String, String> env) : super(_open(env));
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -62,6 +62,11 @@ class AppDatabase extends _$AppDatabase {
       if (from < 6) {
         await customStatement(
           'alter table rooms add column if not exists kml text',
+        );
+      }
+      if (from < 7) {
+        await customStatement(
+          "alter table issues alter column image type text",
         );
       }
     }),
@@ -128,7 +133,7 @@ enum Priority { low, medium, high }
 class Issues extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get cleanId => integer().references(Cleans, #id)();
-  BlobColumn get image => blob().nullable()();
+  TextColumn get image => text().nullable()();
   TextColumn get description => text().nullable()();
   TextColumn get tag => textEnum<TagName>()();
   //needs coords perhaps
