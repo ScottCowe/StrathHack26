@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -26,6 +28,8 @@ class _RoomOutlineState extends State<RoomOutline> {
 
   final _map = MapController();
   final _points = <LatLng>[];
+  LatLng? _here;
+  StreamSubscription<Position>? _fixes;
 
   @override
   void initState() {
@@ -38,11 +42,12 @@ class _RoomOutlineState extends State<RoomOutline> {
 
   @override
   void dispose() {
+    _fixes?.cancel();
     _map.dispose();
     super.dispose();
   }
 
-  Future<void> _locate({bool quiet = false}) async {
+  Future<void> _locate({bool quiet = false, bool pan = true}) async {
     try {
       var permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
@@ -61,7 +66,20 @@ class _RoomOutlineState extends State<RoomOutline> {
         ),
       );
       if (!mounted) return;
-      _map.move(LatLng(position.latitude, position.longitude), 19);
+      final here = LatLng(position.latitude, position.longitude);
+      setState(() => _here = here);
+      if (pan) _map.move(here, 19);
+      _fixes ??= Geolocator.getPositionStream(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 2,
+        ),
+      ).listen((update) {
+        if (!mounted) return;
+        setState(() {
+          _here = LatLng(update.latitude, update.longitude);
+        });
+      });
     } catch (_) {
       if (!quiet && mounted) {
         _say('Location is off. Pan the map to the room.');
@@ -134,9 +152,7 @@ class _RoomOutlineState extends State<RoomOutline> {
                 interactionOptions: const InteractionOptions(
                   flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
                 ),
-                onMapReady: () {
-                  if (_points.isEmpty) _locate(quiet: true);
-                },
+                onMapReady: () => _locate(quiet: true, pan: _points.isEmpty),
                 onTap: (_, point) {
                   if (_onHandle(point)) return;
                   setState(() => _points.add(point));
@@ -166,6 +182,27 @@ class _RoomOutlineState extends State<RoomOutline> {
                         points: _points,
                         strokeWidth: 3,
                         color: _outline,
+                      ),
+                    ],
+                  ),
+                if (_here != null)
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        point: _here!,
+                        width: 18,
+                        height: 18,
+                        child: const IgnorePointer(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: Color(0xFF2E7D32),
+                              shape: BoxShape.circle,
+                              border: Border.fromBorderSide(
+                                BorderSide(color: Colors.white, width: 3),
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
