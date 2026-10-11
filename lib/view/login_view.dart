@@ -18,14 +18,22 @@ class LoginView extends StatelessWidget {
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            const SizedBox(height: 24),
             Image.asset(
               'assets/images/strathlogo.png',
-              width: 200,
-              height: 200,
+              width: 120,
+              height: 120,
             ),
-      LoginForm(viewModel: viewModel),
+            const SizedBox(height: 8),
+            const Text(
+              'StrathClean',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            LoginForm(viewModel: viewModel),
           ],
         ),
       ),
@@ -59,7 +67,7 @@ class _LoginFormState extends State<LoginForm> {
       return;
     }
 
-    final user = await widget.viewModel.submitLogin(
+    final result = await widget.viewModel.submitLogin(
       _usernameController.text,
       _passwordController.text,
     );
@@ -68,6 +76,7 @@ class _LoginFormState extends State<LoginForm> {
       return;
     }
 
+    final user = result.user;
     if (user != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!context.mounted) {
@@ -84,7 +93,7 @@ class _LoginFormState extends State<LoginForm> {
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Login failed')),
+      SnackBar(content: Text(result.error ?? 'Login failed')),
     );
   }
 
@@ -100,11 +109,11 @@ class _LoginFormState extends State<LoginForm> {
               controller: _usernameController,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
-                hintText: 'Username',
+                hintText: 'Full name',
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter your username';
+                  return 'Full name is missing';
                 }
                 return null;
               },
@@ -119,7 +128,7 @@ class _LoginFormState extends State<LoginForm> {
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please enter your password';
+                  return 'Password is missing';
                 }
                 return null;
               },

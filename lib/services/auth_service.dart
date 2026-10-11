@@ -8,23 +8,32 @@ class AuthService {
 
   final SqlClient _sql;
 
-  Future<User?> authenticate(String username, String password) async {
+  Future<({User? user, String? error})> authenticate(
+    String username,
+    String password,
+  ) async {
     final rows = await _sql.query(
       'select password_hash, role from users where username = \$1',
       [username],
     );
     if (rows.isEmpty) {
-      return null;
+      return (user: null, error: 'User not found');
     }
 
     final row = rows.first;
     if (row['password_hash'] != password) {
-      return null;
+      return (
+        user: null,
+        error: 'Password is incorrect',
+      );
     }
 
-    return User(
-      username: username,
-      role: Role.values.byName(row['role'] as String),
+    return (
+      user: User(
+        username: username,
+        role: Role.values.byName(row['role'] as String),
+      ),
+      error: null,
     );
   }
 }
