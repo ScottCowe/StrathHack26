@@ -72,6 +72,7 @@ class CleanService {
       'issues.priority, issues.resolved '
       'from issues '
       'left join cleans on cleans.id = issues.clean_id '
+      'where issues.resolved = false '
       'order by issues.id',
     );
     return [
