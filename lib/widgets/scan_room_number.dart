@@ -1,31 +1,27 @@
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 
-class ScanRoomNumber extends StatelessWidget {
-  const ScanRoomNumber({super.key});
+class ScanRoomNumber extends StatefulWidget {
+  const ScanRoomNumber({super.key, required this.onDetect});
 
-  @override
-  Widget build(BuildContext context) {
-    return CameraView();
-  }
-}
-
-class CameraView extends StatefulWidget {
-  const CameraView({super.key});
+  final void Function(String roomNumber) onDetect;
 
   @override
   State<StatefulWidget> createState() => _CameraViewState();
 }
 
-class _CameraViewState extends State<CameraView> {
+class _CameraViewState extends State<ScanRoomNumber> {
   CameraController? controller;
   final TextRecognizer recognizer = TextRecognizer(
     script: TextRecognitionScript.latin,
   );
-  String text = '';
+  String roomNumber = '';
+
+  Timer? timer;
 
   Future<void> recognizeText() async {
     if (controller == null) {
@@ -41,7 +37,9 @@ class _CameraViewState extends State<CameraView> {
     );
 
     setState(() {
-      text = recognizedText.text;
+      RegExp re = RegExp(r'\b[A-Z]{2}\d{3,4}\b');
+      roomNumber = re.firstMatch(recognizedText.text).toString();
+      widget.onDetect(roomNumber);
     });
   }
 
@@ -75,6 +73,8 @@ class _CameraViewState extends State<CameraView> {
             }
           });
     })();
+
+    timer = Timer.periodic(Duration(seconds: 1), (Timer t) => recognizeText());
   }
 
   @override
@@ -92,23 +92,6 @@ class _CameraViewState extends State<CameraView> {
       return Text('loading');
     }
 
-    return Stack(
-      children: [
-        CameraPreview(controller!),
-        Positioned(
-          bottom: 50,
-          left: 0,
-          right: 0,
-          child: Center(
-            child: ElevatedButton(
-              onPressed: recognizeText,
-              child: const Text('scan text'),
-            ),
-          ),
-        ),
-        if (text.isNotEmpty)
-          Positioned(top: 50, left: 20, right: 20, child: Text(text)),
-      ],
-    );
+    return CameraPreview(controller!);
   }
 }

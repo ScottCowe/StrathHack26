@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:strathclean/services/sql_client.dart';
 import 'package:strathclean/widgets/fuzzy_search.dart';
+import 'package:strathclean/widgets/scan_room_number.dart';
 
 class RoomSelect extends StatefulWidget {
-  const RoomSelect({
-    super.key,
-    required this.value,
-    required this.onChanged,
-  });
+  const RoomSelect({super.key, required this.value, required this.onChanged});
 
   final String? value;
   final ValueChanged<String?> onChanged;
@@ -53,16 +50,20 @@ class _RoomSelectState extends State<RoomSelect> {
 
   @override
   Widget build(BuildContext context) {
-    final selected = _rooms.contains(widget.value) ? widget.value : null;
+    String? selected = _rooms.contains(widget.value) ? widget.value : null;
     final hint = !_loaded
         ? 'Loading rooms'
         : _rooms.isEmpty
-            ? 'No rooms'
-            : 'Select room';
+        ? 'No rooms'
+        : 'Select room';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (selected != null)
+          ScanRoomNumber(
+            onDetect: (s) => selected = _rooms.contains(s) ? s : null,
+          ),
         FuzzySearch(
           values: _rooms,
           value: selected,
