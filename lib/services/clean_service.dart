@@ -66,13 +66,16 @@ class CleanService {
             String tag,
             String priority,
             bool resolved,
-          })>> listIssues() async {
+            String? loggedBy,
+          })>> listIssues({bool includeCleaning = true}) async {
     final rows = await _sql.query(
       'select issues.id, cleans.room, issues.description, issues.tag, '
-      'issues.priority, issues.resolved '
+      'issues.priority, issues.resolved, users.username as logged_by '
       'from issues '
       'left join cleans on cleans.id = issues.clean_id '
+      'left join users on users.id = cleans.cleaned_by '
       'where issues.resolved = false '
+      '${includeCleaning ? '' : "and issues.tag <> 'cleaners' "}'
       'order by issues.id',
     );
     return [
@@ -84,6 +87,7 @@ class CleanService {
           tag: row['tag'] as String,
           priority: row['priority'] as String,
           resolved: row['resolved'] == true,
+          loggedBy: row['logged_by'] as String?,
         ),
     ];
   }
@@ -105,13 +109,26 @@ class CleanService {
     return _sql.query('delete from issues where id = \$1', [id]);
   }
 
-  Future<List<({String room, String cleaner, DateTime cleanTime, String? issues})>>
-  pendingAudits() async {
+  Future<
+      List<
+          ({
+            String room,
+            String cleaner,
+            DateTime cleanTime,
+            String? previousIssue,
+            String? unresolved,
+          })>> pendingAudits() async {
     final rows = await _sql.query(
       'select c.room, u.username as cleaner, c.clean_time, '
-      '(select string_agg(i.description, \', \') from issues i '
+      '(select i.description from issues i '
       'join cleans older on older.id = i.clean_id '
-      'where older.room = c.room and i.description is not null) as issues '
+      'where older.room = c.room and i.resolved = true '
+      'and i.description is not null '
+      'order by older.clean_time desc, i.id desc limit 1) as previous_issue, '
+      '(select string_agg(i.description, \', \' order by i.id) from issues i '
+      'join cleans older on older.id = i.clean_id '
+      'where older.room = c.room and i.resolved = false '
+      'and i.description is not null) as unresolved '
       'from cleans c '
       'join users u on u.id = c.cleaned_by '
       'where c.audited = false and c.clean_time = ('
@@ -127,7 +144,8 @@ class CleanService {
             (row['clean_time'] as num).toInt(),
             isUtc: true,
           ).toLocal(),
-          issues: row['issues'] as String?,
+          previousIssue: row['previous_issue'] as String?,
+          unresolved: row['unresolved'] as String?,
         ),
     ];
   }
@@ -136,6 +154,7 @@ class CleanService {
     required String room,
     required String? description,
     required String tag,
+    required String priority,
   }) async {
     final cleans = await _sql.query(
       'select id from cleans where room = \$1 order by clean_time desc limit 1',
@@ -148,6 +167,7 @@ class CleanService {
       cleanId: (cleans.first['id'] as num).toInt(),
       description: description,
       tag: tag,
+      priority: priority,
     );
   }
 
@@ -155,10 +175,11 @@ class CleanService {
     required int cleanId,
     required String? description,
     required String tag,
+    required String priority,
   }) {
     return _sql.query(
       'insert into issues (clean_id, description, tag, priority) values (\$1, \$2, \$3, \$4)',
-      [cleanId, description, tag, 'low'],
+      [cleanId, description, tag, priority],
     );
   }
 }
