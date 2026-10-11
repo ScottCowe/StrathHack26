@@ -10,7 +10,6 @@ import 'package:strathclean/services/clean_service.dart';
 import 'package:strathclean/services/room_service.dart';
 import 'package:strathclean/services/sql_client.dart';
 import 'package:strathclean/view/add_room_view.dart';
-import 'package:strathclean/view/audit_view.dart';
 import 'package:strathclean/view/home_view.dart';
 
 void main() {
