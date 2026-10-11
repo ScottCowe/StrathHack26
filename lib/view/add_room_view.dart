@@ -65,7 +65,7 @@ class _AddRoomViewState extends State<AddRoomView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add new room'),
-        backgroundColor: Colors.blue,
+        backgroundColor: const Color.fromARGB(255, 19, 8, 68),
         foregroundColor: Colors.white,
       ),
       body: Padding(

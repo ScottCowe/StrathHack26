@@ -141,7 +141,7 @@ class _AuditViewState extends State<AuditView> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
-        backgroundColor: Colors.blue,
+        backgroundColor: const Color.fromARGB(255, 19, 8, 68),
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(

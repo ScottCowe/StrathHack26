@@ -28,6 +28,13 @@ class StrathCleanApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData(
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size(double.infinity, 48),
+          ),
+        ),
+      ),
       initialRoute: '/login',
       routes: {
         '/login': (context) => LoginView(

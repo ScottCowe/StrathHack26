@@ -59,7 +59,7 @@ class _IssuesViewState extends State<IssuesView> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.canEdit ? 'Manage issues' : 'View issues'),
-        backgroundColor: Colors.blue,
+        backgroundColor: const Color.fromARGB(255, 19, 8, 68),
         foregroundColor: Colors.white,
       ),
       body: _body(),

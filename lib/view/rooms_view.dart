@@ -57,7 +57,7 @@ class _RoomsViewState extends State<RoomsView> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.canEdit ? 'Manage rooms' : 'View rooms'),
-        backgroundColor: Colors.blue,
+        backgroundColor: const Color.fromARGB(255, 19, 8, 68),
         foregroundColor: Colors.white,
       ),
       body: _body(),

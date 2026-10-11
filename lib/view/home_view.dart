@@ -13,8 +13,8 @@ class HomeView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Strath Clean'),
-        backgroundColor: Colors.blue,
+        title: const Text('Home'),
+        backgroundColor: const Color.fromARGB(255, 19, 8, 68),
         foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
         actions: [
@@ -48,6 +48,7 @@ class HomeView extends StatelessWidget {
           ),
           Expanded(
             child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -59,7 +60,7 @@ class HomeView extends StatelessWidget {
                         '/log-clean',
                         arguments: user,
                       ),
-                      child: const Text('Log cleans'),
+                      child: const Text('Log clean'),
                     ),
                     const SizedBox(height: 12),
                     ElevatedButton(
