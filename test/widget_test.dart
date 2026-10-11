@@ -34,7 +34,10 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        home: HomeView(user: user),
+        home: HomeView(
+          user: user,
+          cleanService: CleanService(SqlClient()),
+        ),
         routes: {
           '/add-room': (context) => AddRoomView(
                 roomService: RoomService(SqlClient()),

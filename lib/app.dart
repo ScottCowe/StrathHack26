@@ -39,7 +39,7 @@ class StrathCleanApp extends StatelessWidget {
           if (user == null) {
             return LoginView(viewModel: LoginViewModel(authRepository));
           }
-          return HomeView(user: user);
+          return HomeView(user: user, cleanService: cleanService);
         },
         '/audit': (context) {
           final user =
