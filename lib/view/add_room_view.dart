@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:strathclean/kml.dart';
 import 'package:strathclean/services/room_service.dart';
+import 'package:strathclean/widgets/room_outline.dart';
 
 class AddRoomView extends StatefulWidget {
   const AddRoomView({super.key, required this.roomService});
@@ -16,6 +18,7 @@ class _AddRoomViewState extends State<AddRoomView> {
   final _buildingController = TextEditingController();
   final _floorController = TextEditingController();
   final _notesController = TextEditingController();
+  String? _kml;
   var _saving = false;
 
   @override
@@ -31,9 +34,8 @@ class _AddRoomViewState extends State<AddRoomView> {
     final name = _nameController.text.trim();
     if (_saving) return;
     if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a room name')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Enter a room name')));
       return;
     }
 
@@ -47,17 +49,29 @@ class _AddRoomViewState extends State<AddRoomView> {
         notes: notes.isEmpty ? null : notes,
         building: building.isEmpty ? null : building,
         floor: floor.isEmpty ? null : floor,
+        kml: roomKmlFor(name, _kml),
       );
       if (!mounted) return;
       Navigator.pop(context);
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not add room: $error')),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Could not add room: $error')));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
+  }
+
+  Future<void> _draw() async {
+    final saved = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            RoomOutline(roomName: _nameController.text.trim(), kml: _kml),
+      ),
+    );
+    if (saved == null || !mounted) return;
+    setState(() => _kml = saved.isEmpty ? null : saved);
   }
 
   @override
@@ -68,51 +82,57 @@ class _AddRoomViewState extends State<AddRoomView> {
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
       ),
-      body: Padding(
+      body: ListView(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Room name',
-              ),
+        children: [
+          TextField(
+            controller: _nameController,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              labelText: 'Room name',
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _buildingController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Building',
-              ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _buildingController,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              labelText: 'Building',
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _floorController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Floor',
-              ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _floorController,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              labelText: 'Floor',
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _notesController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Notes',
-                alignLabelWithHint: true,
-              ),
-              maxLines: 4,
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _notesController,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              labelText: 'Notes',
+              alignLabelWithHint: true,
             ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: _saving ? null : _submit,
-              child: const Text('Save'),
+            maxLines: 4,
+          ),
+          const SizedBox(height: 12),
+          OutlinedButton(
+            onPressed: _saving ? null : _draw,
+            child: Text(
+              _kml == null
+                  ? 'Draw outline'
+                  : 'Edit outline (${parseRoomPolygonKml(_kml).length} corners)',
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 12),
+          ElevatedButton(
+            onPressed: _saving ? null : _submit,
+            child: const Text('Save'),
+          ),
+        ],
       ),
     );
   }
