@@ -25,7 +25,7 @@ class LoginView extends StatelessWidget {
               width: 200,
               height: 200,
             ),
-      LoginForm(viewModel: viewModel),
+            LoginForm(viewModel: viewModel),
           ],
         ),
       ),
@@ -83,9 +83,8 @@ class _LoginFormState extends State<LoginForm> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Login failed')),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text('Login failed')));
   }
 
   @override

@@ -21,9 +21,8 @@ class CleanerView extends StatefulWidget {
 class _CleanerViewState extends State<CleanerView> {
   User? user;
 
- @override
+  @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     loadData();
   }
@@ -32,8 +31,8 @@ class _CleanerViewState extends State<CleanerView> {
     SharedPreferences sp = await SharedPreferences.getInstance();
     final String? userSerialized = sp.getString('user');
     user = userSerialized == null
-      ? null
-      : User.fromJson(jsonDecode(userSerialized));
+        ? null
+        : User.fromJson(jsonDecode(userSerialized));
 
     setState(() {});
   }
@@ -47,8 +46,8 @@ class _CleanerViewState extends State<CleanerView> {
         foregroundColor: Colors.white,
       ),
       body: user == null
-        ? Text("woops")
-        : Text("username: ${user?.username ?? ""}")
+          ? Text("woops")
+          : Text("username: ${user?.username ?? ""}"),
     );
   }
 }
