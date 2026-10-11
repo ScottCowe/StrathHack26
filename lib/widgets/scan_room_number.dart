@@ -35,7 +35,7 @@ class _CameraViewState extends State<ScanRoomNumber> {
       inputImg,
     );
 
-    RegExp re = RegExp(r'\b[a-zA-Z]{2,4}\d{3,4}\b');
+    RegExp re = RegExp(r'\b[a-zA-Z]{2,4}\d{3,4}\b[a-z]?\b');
     RegExpMatch? roomNumberRe = re.firstMatch(recognizedText.text);
 
     if (roomNumberRe != null) {
