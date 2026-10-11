@@ -113,7 +113,7 @@ class FuzzySearchState extends State<FuzzySearch> {
     setState(() => results = next);
   }
 
-  void _select(String name) {
+  void select(String name) {
     _applyingSelection = true;
     _suppress = true;
     searchController.text = name;
@@ -146,7 +146,7 @@ class FuzzySearchState extends State<FuzzySearch> {
             ),
             if (results.isNotEmpty) ...[
               Divider(height: 1, color: borderColor),
-              SearchResult(results: results, selectResult: _select),
+              SearchResult(results: results, selectResult: select),
             ],
           ],
         ),

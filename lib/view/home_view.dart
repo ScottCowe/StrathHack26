@@ -26,10 +26,7 @@ class HomeView extends StatelessWidget {
                 (route) => false,
               );
             },
-            child: const Text(
-              'Logout',
-              style: TextStyle(color: Colors.white),
-            ),
+            child: const Text('Logout', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -40,10 +37,7 @@ class HomeView extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Text(
               'Hello, ${user.username}',
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
           ),
           Expanded(
@@ -53,74 +47,83 @@ class HomeView extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                  if (user.role == Role.cleaner) ...[
-                    ElevatedButton(
-                      onPressed: () => Navigator.pushNamed(
-                        context,
-                        '/log-clean',
-                        arguments: user,
+                    if (user.role == Role.cleaner) ...[
+                      ElevatedButton(
+                        onPressed: () => Navigator.pushNamed(
+                          context,
+                          '/log-clean',
+                          arguments: user,
+                        ),
+                        child: const Text('Log cleans'),
                       ),
-                      child: const Text('Log clean'),
-                    ),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      onPressed: () => Navigator.pushNamed(
-                        context,
-                        '/log-issue',
-                        arguments: user,
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: () => Navigator.pushNamed(
+                          context,
+                          '/log-issue',
+                          arguments: user,
+                        ),
+                        child: const Text('Log issue'),
                       ),
-                      child: const Text('Log issue'),
-                    ),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      onPressed: () => Navigator.pushNamed(
-                        context,
-                        '/rooms',
-                        arguments: user,
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: () => Navigator.pushNamed(
+                          context,
+                          '/rooms',
+                          arguments: user,
+                        ),
+                        child: const Text('View rooms'),
                       ),
-                      child: const Text('View rooms'),
-                    ),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      onPressed: () => Navigator.pushNamed(
-                        context,
-                        '/issues',
-                        arguments: user,
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: () => Navigator.pushNamed(
+                          context,
+                          '/issues',
+                          arguments: user,
+                        ),
+                        child: const Text('View issues'),
                       ),
-                      child: const Text('View issues'),
-                    ),
+                    ],
+                    if (user.role == Role.supervisor) ...[
+                      ElevatedButton(
+                        onPressed: () => Navigator.pushNamed(
+                          context,
+                          '/manage-rooms',
+                          arguments: user,
+                        ),
+                        child: const Text('Manage rooms'),
+                      ),
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: () => Navigator.pushNamed(
+                          context,
+                          '/manage-issues',
+                          arguments: user,
+                        ),
+                        child: const Text('Manage issues'),
+                      ),
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: () => Navigator.pushNamed(
+                          context,
+                          '/log-issue',
+                          arguments: user,
+                        ),
+                        child: const Text('Log issue'),
+                      ),
+                      const SizedBox(height: 12),
+                      _BeginAudit(user: user, cleanService: cleanService),
+                      const SizedBox(height: 12),
+                      ElevatedButton(
+                        onPressed: () => Navigator.pushNamed(
+                          context,
+                          '/add-room',
+                          arguments: user,
+                        ),
+                        child: const Text('Add new room'),
+                      ),
+                    ],
                   ],
-                  if (user.role == Role.supervisor) ...[
-                    _BeginAudit(user: user, cleanService: cleanService),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      onPressed: () => Navigator.pushNamed(
-                        context,
-                        '/log-issue',
-                        arguments: user,
-                      ),
-                      child: const Text('Log issue'),
-                    ),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      onPressed: () => Navigator.pushNamed(
-                        context,
-                        '/manage-issues',
-                        arguments: user,
-                      ),
-                      child: const Text('Manage issues'),
-                    ),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      onPressed: () => Navigator.pushNamed(
-                        context,
-                        '/manage-rooms',
-                        arguments: user,
-                      ),
-                      child: const Text('Manage rooms'),
-                    ),
-                  ],
-                ],
                 ),
               ),
             ),
@@ -189,10 +192,7 @@ class _BeginAuditState extends State<_BeginAudit> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        ElevatedButton(
-          onPressed: _load,
-          child: const Text('Begin audit'),
-        ),
+        ElevatedButton(onPressed: _load, child: const Text('Begin audit')),
         if (_started) ...[
           const SizedBox(height: 12),
           if (_loading)
@@ -231,3 +231,4 @@ class _BeginAuditState extends State<_BeginAudit> {
     );
   }
 }
+
